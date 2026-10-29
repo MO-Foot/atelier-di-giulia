@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>L'atelier di Giulia</title>
+  <meta name="theme-color" content="#ff8a3d">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Atelier Giulia">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Accesso genitore -->
+  <section id="screen-login" class="screen">
+    <div class="login-card">
+      <div class="login-hero">🎨🐰✏️</div>
+      <h1>L'atelier di <span class="child-name">Giulia</span></h1>
+      <p class="grown">Per i grandi: entra una volta con il tuo account Google. Poi l'app resta collegata su questo tablet.</p>
+      <button id="btn-login" class="btn btn-big btn-primary">Entra con Google</button>
+      <p id="login-demo-note" class="grown small hidden">Modalità prova: Firebase non è ancora configurato, i dati restano solo su questo dispositivo.</p>
+      <p id="login-error" class="error hidden"></p>
+    </div>
+  </section>
+
+  <!-- Barra in alto (tempo + uovo + zucca) -->
+  <header id="topbar" class="hidden">
+    <div class="timebox" title="Tempo rimasto">
+      <span class="time-icon">⏳</span>
+      <div class="timebar"><div id="time-fill"></div></div>
+    </div>
+    <button id="egg-box" class="meter" aria-label="Uovo">
+      <span class="meter-icon">🥚</span>
+      <span id="egg-dots" class="dots"></span>
+    </button>
+    <button id="pumpkin-box" class="meter hidden" aria-label="Zucca magica">
+      <span class="meter-icon">🎃</span>
+      <span id="pumpkin-dots" class="dots"></span>
+    </button>
+    <button id="btn-parent" class="icon-btn" aria-label="Area genitori">⚙️</button>
+  </header>
+
+  <!-- Home -->
+  <section id="screen-home" class="screen hidden">
+    <h1 class="hello">Ciao <span class="child-name">Giulia</span>! <span class="wave">👋</span></h1>
+    <div id="halloween-banner" class="hw-banner hidden">🦇 È Halloween! Disegni speciali e animaletti mascherati! 🎃</div>
+    <div class="tiles">
+      <button class="tile tile-trace" data-go="trace"><span class="tile-emoji">✏️</span><span>Ricalca</span></button>
+      <button class="tile tile-color" data-go="color"><span class="tile-emoji">🖍️</span><span>Colora</span></button>
+      <button class="tile tile-coll" data-go="collection"><span class="tile-emoji">🐾</span><span>Animaletti</span></button>
+      <button class="tile tile-gal" data-go="gallery"><span class="tile-emoji">🖼️</span><span>I miei disegni</span></button>
+    </div>
+  </section>
+
+  <!-- Scelta esercizio -->
+  <section id="screen-pick" class="screen hidden">
+    <div class="screen-head">
+      <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
+      <h2 id="pick-title">Ricalca</h2>
+    </div>
+    <div id="pick-grid" class="pick-grid"></div>
+  </section>
+
+  <!-- Disegno -->
+  <section id="screen-draw" class="screen hidden">
+    <div class="screen-head">
+      <button class="icon-btn back" id="draw-back" aria-label="Indietro">⬅️</button>
+      <h2 id="draw-title"></h2>
+      <button class="icon-btn" id="btn-say" aria-label="Ripeti istruzione">🔊</button>
+    </div>
+    <div class="draw-layout">
+      <div id="stage" class="stage">
+        <canvas id="cv-paint"></canvas>
+        <canvas id="cv-top"></canvas>
+      </div>
+      <div class="tools">
+        <div id="palette" class="palette"></div>
+        <div class="tool-row" id="size-row">
+          <button class="tool size" data-size="small" aria-label="Pennello piccolo"><i style="width:12px;height:12px"></i></button>
+          <button class="tool size" data-size="big" aria-label="Pennello grande"><i style="width:28px;height:28px"></i></button>
+          <button class="tool" id="btn-eraser" aria-label="Gomma">🧽</button>
+        </div>
+        <div class="tool-row">
+          <button class="tool" id="btn-undo" aria-label="Annulla">↩️</button>
+          <button class="tool" id="btn-clear" aria-label="Ricomincia">🗑️</button>
+        </div>
+        <button class="btn btn-done" id="btn-done">Finito! ✅</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Collezione -->
+  <section id="screen-collection" class="screen hidden">
+    <div class="screen-head">
+      <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
+      <h2>I miei animaletti <span id="coll-count" class="pill"></span></h2>
+    </div>
+    <div id="coll-hw-wrap" class="hidden">
+      <h3 class="hw-title">🎃 Speciali di Halloween</h3>
+      <div id="coll-hw" class="coll-grid"></div>
+    </div>
+    <h3 class="sub-title">🥚 Animaletti</h3>
+    <div id="coll-grid" class="coll-grid"></div>
+  </section>
+
+  <!-- Galleria -->
+  <section id="screen-gallery" class="screen hidden">
+    <div class="screen-head">
+      <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
+      <h2>I miei disegni</h2>
+    </div>
+    <div id="gallery-grid" class="gallery-grid"></div>
+    <p id="gallery-empty" class="empty hidden">Ancora nessun disegno. Prova a ricalcare o colorare! ✏️</p>
+  </section>
+
+  <!-- Area genitori -->
+  <section id="screen-parent" class="screen hidden">
+    <div class="screen-head">
+      <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
+      <h2>Area genitori</h2>
+    </div>
+    <div class="parent-panel">
+      <div class="parent-card">
+        <h3>Oggi</h3>
+        <p id="p-today"></p>
+        <p id="p-account" class="small"></p>
+      </div>
+      <div class="parent-card">
+        <h3>Collezione</h3>
+        <p id="p-coll"></p>
+        <button id="btn-reset" class="btn btn-ghost">Azzera collezione e stelle</button>
+      </div>
+      <div class="parent-card">
+        <h3>Disegni salvati</h3>
+        <p class="small">Tocca ✖ per eliminare un disegno.</p>
+        <div id="p-gallery" class="gallery-grid small-grid"></div>
+      </div>
+      <button id="btn-logout" class="btn btn-ghost">Esci dall'account</button>
+    </div>
+  </section>
+
+  <!-- Finestre sovrapposte -->
+  <div id="overlay-result" class="overlay hidden">
+    <div class="result-card">
+      <div id="res-stars" class="res-stars"></div>
+      <p id="res-msg" class="res-msg"></p>
+      <div id="res-prize" class="prize hidden"></div>
+      <div class="res-buttons">
+        <button id="res-again" class="btn btn-ghost">🔁 Ancora</button>
+        <button id="res-next" class="btn btn-primary">Altro disegno ➡️</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="overlay-gate" class="overlay hidden">
+    <div class="gate-card">
+      <h3>Solo per i grandi</h3>
+      <p>Quanto fa <b id="gate-q"></b> ?</p>
+      <div id="gate-input" class="gate-input"></div>
+      <div id="gate-keys" class="gate-keys"></div>
+      <button id="gate-cancel" class="btn btn-ghost">Annulla</button>
+    </div>
+  </div>
+
+  <div id="overlay-timeup" class="overlay overlay-night hidden">
+    <div class="timeup-card">
+      <div class="moon">🌙</div>
+      <h2>Per oggi basta disegnare!</h2>
+      <p>Hai lavorato benissimo. Torna domani! 💤</p>
+      <button id="timeup-parent" class="icon-btn" aria-label="Area genitori">⚙️</button>
+    </div>
+  </div>
+
+  <div id="overlay-photo" class="overlay hidden"><img id="photo-big" alt="Disegno"></div>
+
+  <div id="toast" class="toast hidden"></div>
+  <div id="confetti"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
