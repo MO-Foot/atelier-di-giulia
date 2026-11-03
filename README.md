@@ -1,7 +1,9 @@
 # L'atelier di Giulia
 
 Webapp per tablet per imparare a disegnare (6 anni): **ricalcare** sagome tratteggiate e **colorare restando dentro i bordi**.
-Ogni disegno riceve da 0 a 3 stelle; le stelle fanno schiudere un **uovo** (animaletto normale, 6 stelle) o, nel periodo di Halloween, aprire la **zucca magica** (animaletto mascherato, 5 stelle, solo con i disegni di Halloween).
+Ogni disegno riceve da 0 a 3 stelle. Le stelle fanno schiudere un **uovo** (8 stelle) che dà un animaletto dell'**album in corso**: Animaletti → Fattoria e bosco → Il mare → Dinosauri → Creature magiche. Ogni album si apre quando il precedente è completo.
+Serie stagionali: a **Halloween** (15 ottobre – 10 novembre) i disegni di Halloween aprono la **zucca magica** (5 stelle); a **Natale** (1° dicembre – 6 gennaio) i disegni di Natale aprono il **pacco regalo** (6 stelle).
+Per vedere in anticipo una stagione: aggiungi `?data=2026-12-10` all'indirizzo (cambia solo le stagioni, non il timer).
 Limite di **15 minuti al giorno**, salvato su Firebase così vale anche se si ricarica la pagina o si cambia dispositivo.
 
 Funziona subito in **modalità prova** (dati solo sul dispositivo) finché `js/config.js` è vuoto.
@@ -38,12 +40,12 @@ Il pulsante ⚙️ chiede una moltiplicazione (es. 7 × 8). Da lì: tempo usato 
 | Impostazione | Default | Cosa fa |
 |---|---|---|
 | `dailyMinutes` | 15 | Minuti al giorno |
-| `starsPerEgg` / `starsPerPumpkin` | 6 / 5 | Stelle per vincere un animaletto |
-| `halloween` | 15 ottobre – 10 novembre | Periodo dei disegni e animaletti di Halloween |
+| `starsPerEgg` | 8 | Stelle per far schiudere un uovo |
+| `seasons` | Halloween 15.10–10.11 (5 stelle), Natale 1.12–6.1 (6 stelle) | Periodi e stelle delle serie stagionali |
 | `traceTolerance` | 5 | Ricalco: 4 = più severo, 7 = più facile |
 | `voice` | true | Istruzioni lette ad alta voce |
 
-Nuove sagome: `js/shapes.js` (percorsi SVG in un riquadro 100×100). Nuovi animaletti: `js/animals.js`.
+Nuove sagome: `js/shapes.js` (percorsi SVG in un riquadro 100×100). Nuovi animaletti o album: `js/animals.js` (non cambiare gli `id` già esistenti: sono quelli salvati).
 
 ## File
 

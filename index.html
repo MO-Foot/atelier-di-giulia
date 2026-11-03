@@ -40,9 +40,9 @@
       <span class="meter-icon">🥚</span>
       <span id="egg-dots" class="dots"></span>
     </button>
-    <button id="pumpkin-box" class="meter hidden" aria-label="Zucca magica">
-      <span class="meter-icon">🎃</span>
-      <span id="pumpkin-dots" class="dots"></span>
+    <button id="season-box" class="meter hidden" aria-label="Premio stagionale">
+      <span id="season-icon" class="meter-icon">🎃</span>
+      <span id="season-dots" class="dots"></span>
     </button>
     <button id="btn-parent" class="icon-btn" aria-label="Area genitori">⚙️</button>
   </header>
@@ -50,7 +50,7 @@
   <!-- Home -->
   <section id="screen-home" class="screen hidden">
     <h1 class="hello">Ciao <span class="child-name">Giulia</span>! <span class="wave">👋</span></h1>
-    <div id="halloween-banner" class="hw-banner hidden">🦇 È Halloween! Disegni speciali e animaletti mascherati! 🎃</div>
+    <div id="season-banner" class="hw-banner hidden"></div>
     <div class="tiles">
       <button class="tile tile-trace" data-go="trace"><span class="tile-emoji">✏️</span><span>Ricalca</span></button>
       <button class="tile tile-color" data-go="color"><span class="tile-emoji">🖍️</span><span>Colora</span></button>
@@ -102,12 +102,7 @@
       <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
       <h2>I miei animaletti <span id="coll-count" class="pill"></span></h2>
     </div>
-    <div id="coll-hw-wrap" class="hidden">
-      <h3 class="hw-title">🎃 Speciali di Halloween</h3>
-      <div id="coll-hw" class="coll-grid"></div>
-    </div>
-    <h3 class="sub-title">🥚 Animaletti</h3>
-    <div id="coll-grid" class="coll-grid"></div>
+    <div id="coll-sections"></div>
   </section>
 
   <!-- Galleria -->

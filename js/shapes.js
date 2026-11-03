@@ -23,6 +23,14 @@ const P = {
   luna: 'M62 14 A36 36 0 1 0 62 86 A45 45 0 0 1 62 14 Z',
   pipistrello: 'M50 44 L45 34 L44 44 C38 36 22 32 8 40 C16 46 18 54 16 62 C24 56 32 58 36 66 C40 58 46 58 50 64 C54 58 60 58 64 66 C68 58 76 56 84 62 C82 54 84 46 92 40 C78 32 62 36 56 44 L55 34 Z',
   cappello: 'M12 80 C32 72 68 72 88 80 C68 88 32 88 12 80 Z M30 76 C38 56 46 34 60 14 C60 36 64 56 70 76',
+  // Natale
+  albero: 'M50 10 L68 36 L60 36 L76 58 L66 58 L84 80 L16 80 L34 58 L24 58 L40 36 L32 36 Z M44 80 L44 92 L56 92 L56 80',
+  regalo: 'M18 44 L82 44 L82 88 L18 88 Z M14 30 L86 30 L86 44 L14 44 Z M50 30 L50 88 M50 30 C38 10 22 18 34 30 M50 30 C62 10 78 18 66 30',
+  pupazzo: 'M50 52 A20 20 0 1 1 49.9 52 Z M50 26 A13 13 0 1 1 49.9 26 Z M38 27 L62 27 L58 10 L42 10 Z',
+  campana: 'M50 14 C34 14 30 30 30 46 C30 62 24 70 18 76 L82 76 C76 70 70 62 70 46 C70 30 66 14 50 14 Z M43 76 A7 7 0 0 0 57 76',
+  calza: 'M36 22 L64 22 L64 58 C64 76 54 88 36 88 C22 88 14 80 18 70 C22 62 36 62 36 56 Z M32 10 L68 10 L68 24 L32 24 Z',
+  fiocco: 'M50 10 L50 90 M15 30 L85 70 M15 70 L85 30 M42 18 L50 26 L58 18 M42 82 L50 74 L58 82',
+  bastoncino: 'M42 90 L42 36 C42 12 72 12 72 32',
   ragno: 'M50 42 A16 16 0 1 1 49.9 42 Z M50 28 A8 8 0 1 1 49.9 28 Z M50 28 L50 6 M36 52 L22 42 L14 50 M35 60 L18 58 L10 66 M38 67 L26 76 L20 86 M64 52 L78 42 L86 50 M65 60 L82 58 L90 66 M62 67 L74 76 L80 86',
 };
 
@@ -41,12 +49,20 @@ export const EXERCISES = [
   { id: 't-pesce',     kind: 'trace', name: 'Il pesce',      emoji: '🐟', path: P.pesce,      level: 3 },
   { id: 't-gatto',     kind: 'trace', name: 'Il gatto',      emoji: '🐱', path: P.gatto,      level: 3 },
   { id: 't-fiore',     kind: 'trace', name: 'Il fiore',      emoji: '🌸', path: P.fiore,      level: 3 },
-  { id: 'th-zucca',    kind: 'trace', name: 'La zucca',      emoji: '🎃', path: P.zucca,      level: 2, halloween: true },
-  { id: 'th-fantasma', kind: 'trace', name: 'Il fantasma',   emoji: '👻', path: P.fantasma,   level: 2, halloween: true },
-  { id: 'th-luna',     kind: 'trace', name: 'La luna',       emoji: '🌙', path: P.luna,       level: 2, halloween: true },
-  { id: 'th-cappello', kind: 'trace', name: 'Il cappello della strega', emoji: '🧙', path: P.cappello, level: 3, halloween: true },
-  { id: 'th-ragno',    kind: 'trace', name: 'Il ragnetto',   emoji: '🕷️', path: P.ragno,      level: 3, halloween: true },
-  { id: 'th-pipistrello', kind: 'trace', name: 'Il pipistrello', emoji: '🦇', path: P.pipistrello, level: 3, halloween: true },
+  { id: 'th-zucca',    kind: 'trace', name: 'La zucca',      emoji: '🎃', path: P.zucca,      level: 2, season: 'halloween' },
+  { id: 'th-fantasma', kind: 'trace', name: 'Il fantasma',   emoji: '👻', path: P.fantasma,   level: 2, season: 'halloween' },
+  { id: 'th-luna',     kind: 'trace', name: 'La luna',       emoji: '🌙', path: P.luna,       level: 2, season: 'halloween' },
+  { id: 'th-cappello', kind: 'trace', name: 'Il cappello della strega', emoji: '🧙', path: P.cappello, level: 3, season: 'halloween' },
+  { id: 'th-ragno',    kind: 'trace', name: 'Il ragnetto',   emoji: '🕷️', path: P.ragno,      level: 3, season: 'halloween' },
+  { id: 'th-pipistrello', kind: 'trace', name: 'Il pipistrello', emoji: '🦇', path: P.pipistrello, level: 3, season: 'halloween' },
+
+  { id: 'tn-bastoncino', kind: 'trace', name: 'Il bastoncino di zucchero', emoji: '🍬', path: P.bastoncino, level: 1, season: 'natale' },
+  { id: 'tn-albero',   kind: 'trace', name: "L'albero di Natale", emoji: '🎄', path: P.albero,   level: 2, season: 'natale' },
+  { id: 'tn-regalo',   kind: 'trace', name: 'Il regalo',     emoji: '🎁', path: P.regalo,     level: 2, season: 'natale' },
+  { id: 'tn-pupazzo',  kind: 'trace', name: 'Il pupazzo di neve', emoji: '⛄', path: P.pupazzo, level: 2, season: 'natale' },
+  { id: 'tn-campana',  kind: 'trace', name: 'La campanella', emoji: '🔔', path: P.campana,    level: 2, season: 'natale' },
+  { id: 'tn-calza',    kind: 'trace', name: 'La calza',      emoji: '🧦', path: P.calza,      level: 3, season: 'natale' },
+  { id: 'tn-fiocco',   kind: 'trace', name: 'Il fiocco di neve', emoji: '❄️', path: P.fiocco,  level: 3, season: 'natale' },
 
   // --- Colora (restando dentro i bordi) ---
   { id: 'c-cerchio',   kind: 'color', name: 'Il sole',       emoji: '☀️', path: P.cerchio,    level: 1, suggest: '#ffd23f' },
@@ -57,10 +73,15 @@ export const EXERCISES = [
   { id: 'c-pesce',     kind: 'color', name: 'Il pesce',      emoji: '🐟', path: P.pesce,      level: 2, suggest: '#3a86ff' },
   { id: 'c-stella',    kind: 'color', name: 'La stella',     emoji: '⭐', path: P.stella,     level: 3, suggest: '#ffd23f' },
   { id: 'c-gatto',     kind: 'color', name: 'Il gatto',      emoji: '🐱', path: P.gatto,      level: 3, suggest: '#f77f00' },
-  { id: 'ch-zucca',    kind: 'color', name: 'La zucca',      emoji: '🎃', path: P.zucca,      level: 1, suggest: '#ff7b00', halloween: true },
-  { id: 'ch-fantasma', kind: 'color', name: 'Il fantasma',   emoji: '👻', path: P.fantasma,   level: 1, suggest: '#c9b6ff', halloween: true },
-  { id: 'ch-luna',     kind: 'color', name: 'La luna',       emoji: '🌙', path: P.luna,       level: 2, suggest: '#ffe066', halloween: true },
-  { id: 'ch-pipistrello', kind: 'color', name: 'Il pipistrello', emoji: '🦇', path: P.pipistrello, level: 3, suggest: '#6a4c93', halloween: true },
+  { id: 'ch-zucca',    kind: 'color', name: 'La zucca',      emoji: '🎃', path: P.zucca,      level: 1, suggest: '#ff7b00', season: 'halloween' },
+  { id: 'ch-fantasma', kind: 'color', name: 'Il fantasma',   emoji: '👻', path: P.fantasma,   level: 1, suggest: '#c9b6ff', season: 'halloween' },
+  { id: 'ch-luna',     kind: 'color', name: 'La luna',       emoji: '🌙', path: P.luna,       level: 2, suggest: '#ffe066', season: 'halloween' },
+  { id: 'ch-pipistrello', kind: 'color', name: 'Il pipistrello', emoji: '🦇', path: P.pipistrello, level: 3, suggest: '#6a4c93', season: 'halloween' },
+  { id: 'cn-albero',   kind: 'color', name: "L'albero di Natale", emoji: '🎄', path: P.albero,   level: 1, suggest: '#2d9a5b', season: 'natale' },
+  { id: 'cn-pupazzo',  kind: 'color', name: 'Il pupazzo di neve', emoji: '⛄', path: P.pupazzo, level: 1, suggest: '#7ec8ff', season: 'natale' },
+  { id: 'cn-campana',  kind: 'color', name: 'La campanella', emoji: '🔔', path: P.campana,    level: 2, suggest: '#ffd23f', season: 'natale' },
+  { id: 'cn-regalo',   kind: 'color', name: 'Il regalo',     emoji: '🎁', path: P.regalo,     level: 2, suggest: '#e63946', season: 'natale' },
+  { id: 'cn-calza',    kind: 'color', name: 'La calza',      emoji: '🧦', path: P.calza,      level: 2, suggest: '#e63946', season: 'natale' },
 ];
 
 export const SHAPE_PATHS = P;

@@ -1,7 +1,7 @@
 import { store, isDemo } from './store.js';
 import { SETTINGS } from './config.js';
 import { EXERCISES } from './shapes.js';
-import { ANIMALS, REGULAR, SPECIAL, byId } from './animals.js';
+import { ALBUMS, SEASONS, ALBUM_ITEMS, ALL_ITEMS, currentAlbum, owned } from './animals.js';
 import { samplePath, scoreTrace, scoreColor } from './scoring.js';
 
 const $ = s => document.querySelector(s);
@@ -23,10 +23,31 @@ const targetCache = new Map();
 /* ======================= Utilità ======================= */
 function today() { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
 
-export function isHalloween(d = new Date()) {
+// ?data=2026-12-05 nell'indirizzo permette ai grandi di provare in anticipo una stagione (non tocca il timer)
+const FAKE_DATE = new URLSearchParams(location.search).get('data');
+function seasonDate() { return FAKE_DATE ? new Date(FAKE_DATE + 'T12:00:00') : new Date(); }
+
+/** Stagione attiva ('halloween', 'natale') oppure null. */
+export function activeSeason(d = seasonDate()) {
   const md = `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  const { from, to } = SETTINGS.halloween;
-  return from <= to ? md >= from && md <= to : md >= from || md <= to;
+  for (const [id, { from, to }] of Object.entries(SETTINGS.seasons || {})) {
+    if (!SEASONS[id]) continue;
+    if (from <= to ? md >= from && md <= to : md >= from || md <= to) return id;
+  }
+  return null;
+}
+
+const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null });
+
+/** Aggiorna un profilo salvato con la versione precedente dell'app. */
+function normalizeProfile(p) {
+  const out = { ...EMPTY_PROFILE(), ...p };
+  out.collection = out.collection || {};
+  out.seasonStars = { ...(out.seasonStars || {}) };
+  if (out.pumpkinStars && out.seasonStars.halloween === undefined) out.seasonStars.halloween = out.pumpkinStars;
+  delete out.pumpkinStars;
+  out.best = out.best || {};
+  return out;
 }
 
 function speak(text) {
@@ -92,19 +113,47 @@ function go(where) {
   else if (where === 'gallery') { renderGallery(); show('gallery'); }
 }
 
+function applySeasonTheme() {
+  const se = activeSeason();
+  for (const id of Object.keys(SEASONS)) document.body.classList.toggle('season-' + id, se === id);
+  return se;
+}
+
 function renderHome() {
-  const hw = isHalloween();
-  document.body.classList.toggle('halloween', hw);
-  $('#halloween-banner').classList.toggle('hidden', !hw);
+  const se = applySeasonTheme();
+  const banner = $('#season-banner');
+  banner.classList.toggle('hidden', !se);
+  if (se) { banner.textContent = SEASONS[se].banner; banner.className = 'hw-banner ' + se; }
   renderMeters();
+  announceNewAlbum();
+}
+
+/** La prima volta che si apre un nuovo album (anche dopo l'aggiornamento dell'app) lo annuncia. */
+function announceNewAlbum() {
+  const p = state.profile, alb = currentAlbum(p.collection);
+  if (!alb || p.seenAlbum === alb.id) return;
+  const first = p.seenAlbum === null && alb.id === ALBUMS[0].id;
+  p.seenAlbum = alb.id;
+  store.saveProfile(p).catch(err => console.warn('profilo', err));
+  if (first) return;
+  setTimeout(() => {
+    toast(`${alb.icon} Nuovo album: ${alb.name}!`, 4500);
+    speak(`Nuovo album! ${alb.name}. Fai i disegni per far schiudere le uova!`);
+    confetti([alb.icon, '⭐', '✨', '🎉']);
+  }, 500);
 }
 
 function renderMeters() {
   const p = state.profile; if (!p) return;
   const dots = (n, max) => Array.from({ length: max }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('');
-  $('#egg-dots').innerHTML = dots(p.eggStars, SETTINGS.starsPerEgg);
-  $('#pumpkin-dots').innerHTML = dots(p.pumpkinStars, SETTINGS.starsPerPumpkin);
-  $('#pumpkin-box').classList.toggle('hidden', !isHalloween());
+  $('#egg-dots').innerHTML = dots(Math.min(p.eggStars, SETTINGS.starsPerEgg), SETTINGS.starsPerEgg);
+  const se = activeSeason();
+  $('#season-box').classList.toggle('hidden', !se);
+  if (se) {
+    const need = SETTINGS.seasons[se].stars;
+    $('#season-icon').textContent = SEASONS[se].box;
+    $('#season-dots').innerHTML = dots(Math.min(p.seasonStars[se] || 0, need), need);
+  }
 }
 
 /* ---------- Scelta esercizio ---------- */
@@ -116,13 +165,13 @@ function shapeSvg(ex) {
 }
 
 function renderPick() {
-  const hw = isHalloween();
+  const se = activeSeason();
   $('#pick-title').textContent = state.kind === 'trace' ? '✏️ Ricalca' : '🖍️ Colora';
-  const list = EXERCISES.filter(e => e.kind === state.kind && (!e.halloween || hw))
-    .sort((a, b) => (hw ? (b.halloween ? 1 : 0) - (a.halloween ? 1 : 0) : 0) || a.level - b.level);
+  const list = EXERCISES.filter(e => e.kind === state.kind && (!e.season || e.season === se))
+    .sort((a, b) => (b.season ? 1 : 0) - (a.season ? 1 : 0) || a.level - b.level);
   const best = state.profile.best || {};
   $('#pick-grid').innerHTML = list.map(e => `
-    <button class="card ${e.halloween ? 'hw' : ''}" data-ex="${e.id}" aria-label="${e.name}">
+    <button class="card ${e.season ? 'season ' + e.season : ''}" data-badge="${e.season ? SEASONS[e.season].badge : ''}" data-ex="${e.id}" aria-label="${e.name}">
       <span class="card-emoji">${e.emoji}</span>
       <span class="card-level">${'●'.repeat(e.level)}</span>
       ${shapeSvg(e)}
@@ -183,7 +232,7 @@ function drawGuide(ctx) {
   ctx.save();
   ctx.lineCap = ctx.lineJoin = 'round';
   if (ex.kind === 'trace') {
-    ctx.strokeStyle = ex.halloween ? '#ffe2c8' : '#fff0c9'; ctx.lineWidth = 8; ctx.stroke(path);
+    ctx.strokeStyle = ex.season ? '#ffe2c8' : '#fff0c9'; ctx.lineWidth = 8; ctx.stroke(path);
     ctx.strokeStyle = '#9a8aa8'; ctx.lineWidth = 1.1; ctx.setLineDash([2.6, 2.4]); ctx.stroke(path);
     ctx.setLineDash([]);
     const start = startPoint(ex.path);
@@ -300,23 +349,43 @@ async function finishDrawing() {
   store.addDrawing({ img, exerciseId: ex.id, kind: ex.kind, stars }).catch(err => console.warn('disegno', err));
 }
 
+const pickRandom = arr => arr[Math.floor(Math.random() * arr.length)];
+
 function award(ex, stars) {
   if (!stars) return null;
   const p = state.profile;
   const points = stars + (ex.level === 3 && stars >= 2 ? 1 : 0);
-  const hw = !!ex.halloween && isHalloween();
-  const key = hw ? 'pumpkinStars' : 'eggStars';
-  const need = hw ? SETTINGS.starsPerPumpkin : SETTINGS.starsPerEgg;
-  p[key] = (p[key] || 0) + points;
-  if (p[key] < need) return null;
-  p[key] -= need;
-  const pool = hw ? SPECIAL : REGULAR;
-  const missing = pool.filter(a => !p.collection[a.id]);
-  const pickFrom = missing.length ? missing : pool;
-  const animal = pickFrom[Math.floor(Math.random() * pickFrom.length)];
+  const se = ex.season && ex.season === activeSeason() ? ex.season : null;
+
+  if (se) {
+    // Zucca / pacco regalo della stagione
+    const need = SETTINGS.seasons[se].stars;
+    p.seasonStars[se] = (p.seasonStars[se] || 0) + points;
+    if (p.seasonStars[se] < need) return null;
+    p.seasonStars[se] -= need;
+    const pool = SEASONS[se].items;
+    const missing = pool.filter(a => !p.collection[a.id]);
+    const animal = pickRandom(missing.length ? missing : pool);
+    const isNew = !p.collection[animal.id];
+    p.collection[animal.id] = (p.collection[animal.id] || 0) + 1;
+    return { animal, season: se, isNew };
+  }
+
+  // Uovo dell'album in corso
+  p.eggStars = (p.eggStars || 0) + points;
+  if (p.eggStars < SETTINGS.starsPerEgg) return null;
+  p.eggStars -= SETTINGS.starsPerEgg;
+  const album = currentAlbum(p.collection);
+  const animal = album ? pickRandom(album.items.filter(a => !p.collection[a.id])) : pickRandom(ALBUM_ITEMS);
   const isNew = !p.collection[animal.id];
   p.collection[animal.id] = (p.collection[animal.id] || 0) + 1;
-  return { animal, hw, isNew };
+  let albumDone = null, nextAlbum = null;
+  if (album && !album.items.some(a => !p.collection[a.id])) {
+    albumDone = album;
+    nextAlbum = currentAlbum(p.collection);
+    p.seenAlbum = nextAlbum ? nextAlbum.id : p.seenAlbum;
+  }
+  return { animal, season: null, isNew, albumDone, nextAlbum };
 }
 
 function snapshot() {
@@ -346,18 +415,28 @@ function showResult(ex, res, prize) {
   const box = $('#res-prize');
   if (prize) {
     const a = prize.animal;
-    box.className = 'prize' + (prize.hw ? ' hw' : '');
-    box.innerHTML = `<div class="p-title">${prize.hw ? '🎃 La zucca magica si è aperta!' : '🥚 Si è schiuso l\'uovo!'}</div>
-      <div class="p-animal">${a.emoji}${a.costume ? `<span class="a-costume">${a.costume}</span>` : ''}</div>
-      <div class="p-name">${a.name}${prize.isNew ? ' — nuovo!' : ' — ne hai un altro!'}</div>`;
+    box.className = 'prize' + (prize.season ? ' special ' + prize.season : '');
+    let extra = '';
+    if (prize.albumDone) {
+      extra = `<div class="p-album">🏆 Album «${prize.albumDone.name}» completo!` +
+        (prize.nextAlbum ? `<br>Si apre un nuovo album: ${prize.nextAlbum.icon} ${prize.nextAlbum.name}!` : '<br>Hai completato tutti gli album! 👑') + '</div>';
+    }
+    box.innerHTML = `<div class="p-title">${prize.season ? SEASONS[prize.season].opened : '🥚 Si è schiuso l\'uovo!'}</div>
+      <div class="p-animal"><span class="a-emoji" style="${a.filter ? `--f:${a.filter}` : ''}">${a.emoji}</span>${a.costume ? `<span class="a-costume">${a.costume}</span>` : ''}</div>
+      <div class="p-name">${a.name}${prize.isNew ? ' — nuovo!' : ' — ne hai un altro!'}</div>${extra}`;
   } else box.className = 'prize hidden';
   $('#overlay-result').classList.remove('hidden');
   renderMeters();
 
   if (res.stars) chime(res.stars === 3 ? [660, 880, 1100, 1320] : [660, 880]);
   if (prize) {
-    setTimeout(() => { chime([523, 659, 784, 1047]); confetti(prize.hw ? ['🎃', '🦇', '👻', '🍬', '⭐'] : undefined); }, 700);
-    speak(`${head.replace(/[^\p{L}\p{N} ,!.']/gu, '')} Hai vinto: ${prize.animal.name}!`);
+    setTimeout(() => {
+      chime(prize.albumDone ? [523, 659, 784, 1047, 1319, 1568] : [523, 659, 784, 1047]);
+      confetti(prize.season ? SEASONS[prize.season].confetti : prize.albumDone ? ['🏆', '⭐', '🎉', '👑', '✨'] : undefined);
+    }, 700);
+    let msg = `${head.replace(/[^\p{L}\p{N} ,!.']/gu, '')} Hai vinto: ${prize.animal.name}!`;
+    if (prize.albumDone) msg += ` Hai completato l'album ${prize.albumDone.name}!` + (prize.nextAlbum ? ` Adesso si apre l'album ${prize.nextAlbum.name}!` : '');
+    speak(msg);
   } else {
     speak(`${head.replace(/[^\p{L}\p{N} ,!.']/gu, '')} ${tip}`);
   }
@@ -368,20 +447,44 @@ $('#res-next').onclick = () => { $('#overlay-result').classList.add('hidden'); g
 
 /* ======================= Collezione e galleria ======================= */
 function animalCard(a, count) {
-  return `<div class="animal ${a.halloween ? 'hw' : ''} ${count ? '' : 'locked'}">
+  return `<div class="animal ${a.season ? 'special ' + a.season : ''} ${count ? '' : 'locked'}">
     ${count > 1 ? `<span class="a-count">×${count}</span>` : ''}
-    <span class="a-emoji">${a.emoji}</span>${a.costume ? `<span class="a-costume">${a.costume}</span>` : ''}
+    <span class="a-emoji" style="${a.filter ? `--f:${a.filter}` : ''}">${a.emoji}</span>${a.costume ? `<span class="a-costume">${a.costume}</span>` : ''}
     <span class="a-name">${a.name}</span></div>`;
 }
 
 function renderCollection() {
   const c = state.profile.collection || {};
-  $('#coll-grid').innerHTML = REGULAR.map(a => animalCard(a, c[a.id] || 0)).join('');
-  const ownedHw = SPECIAL.some(a => c[a.id]);
-  $('#coll-hw-wrap').classList.toggle('hidden', !(isHalloween() || ownedHw));
-  $('#coll-hw').innerHTML = SPECIAL.map(a => animalCard(a, c[a.id] || 0)).join('');
-  const have = ANIMALS.filter(a => c[a.id]).length;
-  $('#coll-count').textContent = `${have} / ${isHalloween() || ownedHw ? ANIMALS.length : REGULAR.length}`;
+  const se = activeSeason();
+  const cur = currentAlbum(c);
+  const curIdx = cur ? ALBUMS.indexOf(cur) : ALBUMS.length;
+  let html = '', shown = [];
+
+  // Serie stagionali: quella attiva per prima, le altre solo se ne ha già almeno uno
+  const seasonIds = Object.keys(SEASONS).sort((a, b) => (b === se) - (a === se));
+  for (const id of seasonIds) {
+    const S = SEASONS[id];
+    if (id !== se && !owned(S.items, c)) continue;
+    shown.push(...S.items);
+    html += `<h3 class="sub-title special-title ${id}">${S.badge} ${S.name} <span class="pill">${owned(S.items, c)} / ${S.items.length}</span></h3>
+      <div class="coll-grid">${S.items.map(a => animalCard(a, c[a.id] || 0)).join('')}</div>`;
+  }
+
+  // Album: quelli aperti (dal più recente) e poi un lucchetto per il prossimo
+  const open = ALBUMS.slice(0, curIdx + 1).reverse();
+  for (const A of open) {
+    shown.push(...A.items);
+    const done = owned(A.items, c) === A.items.length;
+    html += `<h3 class="sub-title">${A.icon} ${A.name} <span class="pill ${done ? 'done' : ''}">${done ? '🏆 ' : ''}${owned(A.items, c)} / ${A.items.length}</span></h3>
+      <div class="coll-grid">${A.items.map(a => animalCard(a, c[a.id] || 0)).join('')}</div>`;
+  }
+  const locked = ALBUMS.slice(curIdx + 1);
+  if (locked.length) {
+    html += `<div class="locked-albums">${locked.map((A, i) => `<div class="locked-album"><span class="la-icon">🔒</span>
+      <span>${i === 0 ? `Il prossimo album si apre quando completi «${cur.name}»` : 'Album segreto'}</span></div>`).join('')}</div>`;
+  }
+  $('#coll-sections').innerHTML = html;
+  $('#coll-count').textContent = `${owned(shown, c)} / ${shown.length}`;
 }
 
 async function renderGallery(target = '#gallery-grid', withDelete = false) {
@@ -436,8 +539,10 @@ function openParent() {
   $('#p-account').textContent = isDemo ? 'Modalità prova (Firebase non configurato): dati salvati solo su questo dispositivo.'
     : `Account: ${state.user.email || state.user.displayName}`;
   const c = state.profile.collection || {};
-  const have = ANIMALS.filter(a => c[a.id]).length;
-  $('#p-coll').textContent = `${have} animaletti su ${ANIMALS.length} (${SPECIAL.filter(a => c[a.id]).length} di Halloween). Stelle nell'uovo: ${state.profile.eggStars}/${SETTINGS.starsPerEgg}, nella zucca: ${state.profile.pumpkinStars}/${SETTINGS.starsPerPumpkin}.`;
+  const cur = currentAlbum(c);
+  const lines = ALBUMS.map(A => `${A.icon} ${A.name}: ${owned(A.items, c)}/${A.items.length}`)
+    .concat(Object.entries(SEASONS).map(([id, S]) => `${S.badge} ${S.name}: ${owned(S.items, c)}/${S.items.length} (stelle ${state.profile.seasonStars[id] || 0}/${SETTINGS.seasons[id]?.stars ?? '-'})`));
+  $('#p-coll').innerHTML = `Album in corso: <b>${cur ? cur.name : 'tutti completi'}</b> · stelle nell'uovo ${state.profile.eggStars}/${SETTINGS.starsPerEgg}<br>` + lines.join('<br>');
   renderGallery('#p-gallery', true);
   show('parent');
 }
@@ -451,7 +556,7 @@ $('#p-gallery').addEventListener('click', async e => {
 
 $('#btn-reset').onclick = async () => {
   if (!confirm('Azzerare collezione, stelle e record? I disegni salvati restano.')) return;
-  state.profile = { collection: {}, eggStars: 0, pumpkinStars: 0, best: {} };
+  state.profile = EMPTY_PROFILE();
   try { await store.resetAll(); } catch (err) { alert('Errore: ' + err.message); }
   openParent();
 };
@@ -525,8 +630,12 @@ document.addEventListener('click', e => {
   const g = e.target.closest('[data-go]'); if (g) go(g.dataset.go);
   const c = e.target.closest('[data-ex]'); if (c) openExercise(c.dataset.ex);
 });
-$('#egg-box').onclick = () => { $('#egg-box').classList.add('wiggle'); setTimeout(() => $('#egg-box').classList.remove('wiggle'), 1600); speak(`Raccogli ${SETTINGS.starsPerEgg} stelle per far schiudere l'uovo!`); };
-$('#pumpkin-box').onclick = () => { $('#pumpkin-box').classList.add('wiggle'); setTimeout(() => $('#pumpkin-box').classList.remove('wiggle'), 1600); speak('Fai i disegni di Halloween per aprire la zucca magica!'); };
+$('#egg-box').onclick = () => { $('#egg-box').classList.add('wiggle'); setTimeout(() => $('#egg-box').classList.remove('wiggle'), 1600); const alb = currentAlbum(state.profile.collection); speak(`Raccogli ${SETTINGS.starsPerEgg} stelle per far schiudere l'uovo!` + (alb ? ` Album: ${alb.name}.` : '')); };
+$('#season-box').onclick = () => {
+  const se = activeSeason(); if (!se) return;
+  $('#season-box').classList.add('wiggle'); setTimeout(() => $('#season-box').classList.remove('wiggle'), 1600);
+  speak(SEASONS[se].hint);
+};
 
 let resizeT;
 window.addEventListener('resize', () => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (state.screen === 'draw') layoutStage(); }, 150); });
@@ -554,8 +663,8 @@ async function boot() {
   store.onUser(async u => {
     state.user = u;
     if (!u) { $('#overlay-timeup').classList.add('hidden'); show('login'); return; }
-    try { state.profile = await store.loadProfile(); }
-    catch (e) { console.warn('profilo', e); state.profile = { collection: {}, eggStars: 0, pumpkinStars: 0, best: {} }; }
+    try { state.profile = normalizeProfile(await store.loadProfile()); }
+    catch (e) { console.warn('profilo', e); state.profile = EMPTY_PROFILE(); }
     await startDay();
     go('home');
   });
@@ -563,4 +672,4 @@ async function boot() {
 boot();
 
 // per i test automatici
-window.__dg = { state, isHalloween, scoreTrace, scoreColor, samplePath };
+window.__dg = { state, activeSeason, scoreTrace, scoreColor, samplePath, award, normalizeProfile, go };

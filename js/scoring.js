@@ -82,8 +82,19 @@ export function scoreTrace(target, strokes, size, tolerancePct = 5) {
   const ok = drawn.filter(p => nearTarget(p, T * 1.2)).length;
   const accuracy = ok / drawn.length;
 
-  const score = coverage * (0.25 + 0.75 * accuracy);
-  return { stars: starsFor(score, [0.45, 0.68, 0.84]), score, coverage, accuracy };
+  // Scarabocchi: se la linea disegnata è molto più lunga della sagoma, il punteggio cala.
+  //   (la lunghezza si misura a passi di almeno 4 unità, così il tremolio del dito non conta)
+  const step = (size * 4) / 100;
+  const len = pts => {
+    let total = 0, last = pts[0];
+    for (const p of pts) { const d = Math.hypot(p.x - last.x, p.y - last.y); if (d >= step) { total += d; last = p; } }
+    return total;
+  };
+  const ratio = strokes.reduce((s, st) => s + (st.length ? len(st) : 0), 0) / Math.max(len(target), size);
+  const lengthFactor = ratio > 6 ? 6 / ratio : 1;
+
+  const score = coverage * (0.25 + 0.75 * accuracy) * lengthFactor;
+  return { stars: starsFor(score, [0.45, 0.68, 0.84]), score, coverage, accuracy, ratio };
 }
 
 /**

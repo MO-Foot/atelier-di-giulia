@@ -29,9 +29,13 @@ body {
   touch-action: manipulation;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
-body.halloween {
+body.season-halloween {
   --bg: #fbf1ff;
   background-image: radial-gradient(#e6d3f5 1.5px, transparent 1.6px);
+}
+body.season-natale {
+  --bg: #f1f8f4;
+  background-image: radial-gradient(#cfe6d9 1.5px, transparent 1.6px);
 }
 .hidden { display: none !important; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; background: none; }
@@ -85,11 +89,13 @@ h1, h2, h3 { margin: 0; line-height: 1.1; }
 .dots { display: flex; gap: 3px; }
 .dots i { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--line); background: #eee; }
 .dots i.on { background: var(--yellow); }
-#pumpkin-box .dots i.on { background: var(--hw-a); }
+#season-box .dots i.on { background: var(--hw-a); }
+body.season-natale #season-box .dots i.on { background: #d62839; }
 
 /* Home */
 .hello { font-size: clamp(2rem, 6vw, 3.2rem); text-align: center; margin: 10px 0 14px; }
 .wave { display: inline-block; animation: wave 2s infinite; transform-origin: 70% 70%; }
+.hw-banner.natale { background: linear-gradient(90deg, #b5172a, #2d7a4f); }
 .hw-banner { text-align: center; font-weight: 800; font-size: 1.25rem; color: #fff; background: linear-gradient(90deg, var(--hw-b), var(--hw-a)); border: 3px solid var(--line); border-radius: 20px; padding: 8px 14px; margin: 0 auto 16px; max-width: 700px; }
 .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; max-width: 760px; margin: 0 auto; }
 .tile {
@@ -117,8 +123,9 @@ h1, h2, h3 { margin: 0; line-height: 1.1; }
 .card .card-emoji { position: absolute; top: 6px; left: 8px; font-size: 1.5rem; }
 .card .card-stars { font-size: 1.1rem; letter-spacing: 1px; min-height: 1.5em; }
 .card .card-level { position: absolute; top: 6px; right: 10px; font-size: .9rem; color: var(--ink-soft); }
-.card.hw { background: linear-gradient(160deg, #fff 55%, #ffe1c7); border-color: var(--hw-b); }
-.card.hw::after { content: '🎃'; position: absolute; bottom: 6px; right: 8px; font-size: 1.1rem; }
+.card.season { background: linear-gradient(160deg, #fff 55%, #ffe1c7); border-color: var(--hw-b); }
+.card.season.natale { background: linear-gradient(160deg, #fff 55%, #d9f0e2); border-color: #1f6b44; }
+.card.season::after { content: attr(data-badge); position: absolute; bottom: 6px; right: 8px; font-size: 1.1rem; }
 
 /* Disegno */
 .draw-layout { display: flex; gap: 16px; align-items: flex-start; justify-content: center; }
@@ -142,19 +149,26 @@ h1, h2, h3 { margin: 0; line-height: 1.1; }
 }
 
 /* Collezione */
-.sub-title, .hw-title { margin: 18px 0 10px; font-size: 1.5rem; }
-.hw-title { color: var(--hw-b); }
+.sub-title { margin: 22px 0 10px; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+.special-title.halloween { color: var(--hw-b); }
+.special-title.natale { color: #b5172a; }
+.pill.done { background: #a8eadf; }
+.locked-albums { display: grid; gap: 10px; margin-top: 22px; }
+.locked-album { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 3px dashed #b9aac6; border-radius: 22px; color: var(--ink-soft); font-size: 1.2rem; font-weight: 700; background: rgba(255,255,255,.6); }
+.la-icon { font-size: 2rem; }
 .coll-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 14px; }
 .animal { position: relative; background: var(--paper); border: 3px solid var(--line); border-radius: 22px; padding: 10px 6px 8px; text-align: center; box-shadow: var(--shadow); }
-.animal .a-emoji { font-size: 3.3rem; line-height: 1.15; display: block; }
+.animal .a-emoji { font-size: 3.3rem; line-height: 1.15; display: block; filter: var(--f, none); }
 .animal .a-costume { position: absolute; top: 2px; right: 8px; font-size: 1.7rem; transform: rotate(12deg); }
 .animal .a-name { font-weight: 700; font-size: 1rem; line-height: 1.1; display: block; min-height: 2.2em; }
 .animal .a-count { position: absolute; top: 6px; left: 8px; background: var(--yellow); border: 2px solid var(--line); border-radius: 999px; font-size: .85rem; padding: 0 7px; }
 .animal.locked .a-emoji, .animal.locked .a-costume { filter: brightness(0); opacity: .18; }
 .animal.locked .a-name { color: transparent; }
 .animal.locked::after { content: '?'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 2.6rem; font-weight: 800; color: var(--ink-soft); padding-bottom: 20px; }
-.animal.hw { background: linear-gradient(160deg, #3c1f5c, #6b2f8f 60%, #ff7b00); color: #fff; border-color: #2a0f40; }
-.animal.hw.locked { background: #efe6f7; color: var(--ink); }
+.animal.special.halloween { background: linear-gradient(160deg, #3c1f5c, #6b2f8f 60%, #ff7b00); color: #fff; border-color: #2a0f40; }
+.animal.special.natale { background: linear-gradient(160deg, #1f6b44, #2d9a5b 55%, #d62839); color: #fff; border-color: #0f3b25; }
+.animal.special.locked { background: #efe6f7; color: var(--ink); }
+.animal.special.natale.locked { background: #e3f1e8; }
 
 /* Galleria */
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; }
@@ -181,7 +195,11 @@ h1, h2, h3 { margin: 0; line-height: 1.1; }
 .res-msg { font-size: 1.8rem; font-weight: 800; margin: 6px 0 12px; }
 .res-buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 .prize { margin: 4px auto 16px; padding: 14px; border-radius: 24px; border: 3px dashed var(--line); background: #fffbe6; }
-.prize.hw { background: linear-gradient(160deg, #3c1f5c, #6b2f8f 60%, #ff7b00); color: #fff; border-style: solid; }
+.prize.special { color: #fff; border-style: solid; }
+.prize.special.halloween { background: linear-gradient(160deg, #3c1f5c, #6b2f8f 60%, #ff7b00); }
+.prize.special.natale { background: linear-gradient(160deg, #1f6b44, #2d9a5b 55%, #d62839); }
+.prize .p-animal .a-emoji { filter: var(--f, none); }
+.prize .p-album { margin-top: 10px; padding: 8px 10px; border-radius: 16px; background: #ffe08a; color: var(--ink); font-weight: 800; font-size: 1.15rem; }
 .prize .p-title { font-size: 1.3rem; font-weight: 800; }
 .prize .p-animal { position: relative; display: inline-block; font-size: 6rem; line-height: 1.1; animation: hatch 1s ease-out both; }
 .prize .p-animal .a-costume { position: absolute; top: -6px; right: -26px; font-size: 3rem; transform: rotate(12deg); }

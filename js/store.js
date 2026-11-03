@@ -2,13 +2,13 @@
 // è vuota, "modalità prova" con salvataggio solo nel browser (localStorage).
 //
 // Struttura in Firestore:
-//   users/{uid}                    → { collection: {idAnimale: quanti}, eggStars, pumpkinStars, best: {idEsercizio: stelle} }
+//   users/{uid}                    → { collection: {idAnimale: quanti}, eggStars, seasonStars: {halloween, natale}, best: {idEsercizio: stelle}, seenAlbum }
 //   users/{uid}/days/{AAAA-MM-GG}  → { seconds }            (tempo usato quel giorno)
 //   users/{uid}/drawings/{id}      → { img, exerciseId, kind, stars, createdAt }   (galleria)
 
 import { firebaseConfig } from './config.js';
 
-const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, pumpkinStars: 0, best: {} });
+const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null });
 
 export const isDemo = !firebaseConfig.apiKey;
 
