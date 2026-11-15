@@ -1,6 +1,6 @@
 // Teatro: Giulia (Ada) ascolta la scena, ripete le sue battute a pezzi e poi le recita.
 // Le voci sono quelle sintetiche del tablet; il riconoscimento vocale usa quello di Safari (Siri).
-import { TITLE, CAST, MOMENTS, ADA_LINES, ROLE } from './teatro-copione.js?v=20261115c';
+import { TITLE, CAST, MOMENTS, ADA_LINES, ROLE } from './teatro-copione.js?v=20261115d';
 
 const LEARNED_AT = 3;     // una battuta è "imparata" (biglietto 🎟️) dopo 3 prove riuscite
 const OK_SCORE = 0.7;     // parole giuste (in ordine) per dire "giusta"
@@ -327,29 +327,54 @@ export function pieces(text) {
   return out;
 }
 async function playPieces() {
+  // Come la recita: la scena va avanti in ordine, così Giulia sa cosa succede prima.
+  // Quando tocca ad Ada: Ada dice la battuta a pezzi e Giulia ripete ogni pezzo;
+  // poi si riascolta l'attacco e Giulia dice la battuta intera da sola.
   stopAll(); const my = run;
   ctx.$('#th-controls').classList.add('busy');
-  for (const l of current.lines.filter(x => x.who === ROLE)) {
+  const lines = current.lines;
+  for (let i = 0; i < lines.length; i++) {
     if (my !== run) return;
+    const l = lines[i];
+    if (l.who !== ROLE) {
+      setSpeaker(l);
+      await say(l.who, l.text, my);
+      await pause(300, my);
+      continue;
+    }
     const parts = pieces(l.text);
-    if (parts.length > 1) {
-      for (const p of parts) {
-        if (my !== run) return;
+    // 1) impara i pezzi
+    await say('N', parts.length > 1 ? 'Tocca ad Ada! Impariamo la battuta a pezzi.' : 'Tocca ad Ada! Ascolta e ripeti.', my);
+    for (const p of parts) {
+      if (my !== run) return;
+      setSpeaker({ who: ROLE, text: p });
+      await say(ROLE, p, my);
+      let ok = await myTurn(p, my, 'Ripeti!');
+      while (!ok && my === run && lastJudge === 'again') {
         setSpeaker({ who: ROLE, text: p });
         await say(ROLE, p, my);
-        let ok = await myTurn(p, my, 'Ripeti!');
-        while (!ok && my === run && lastJudge === 'again') ok = await myTurn(p, my, 'Ancora!');
+        ok = await myTurn(p, my, 'Ancora!');
       }
-      if (my !== run) return;
-      await say('N', 'Adesso tutta insieme!', my);
     }
-    setSpeaker(l);
-    await say(ROLE, l.text, my);
-    let ok = await myTurn(l.text, my, parts.length > 1 ? 'Tutta insieme!' : 'Ripeti!');
-    while (!ok && my === run && lastJudge === 'again') ok = await myTurn(l.text, my, 'Ancora!');
+    if (my !== run) return;
+    // 2) di nuovo l'attacco, poi la battuta intera senza aiuto
+    const cue = [...lines.slice(0, i)].reverse().find(x => x.who !== ROLE && x.who !== 'N') || lines[i - 1];
+    await say('N', 'Adesso tutta da sola, come alla recita!', my);
+    let ok = false;
+    do {
+      if (cue) { setSpeaker(cue); await say(cue.who, cue.text, my); await pause(250, my); }
+      if (my !== run) return;
+      setSpeaker({ who: ROLE, text: '…' });
+      ok = await myTurn(l.text, my, ok === false && lastJudge === 'again' ? 'Ancora una volta!' : 'Tocca a te!');
+    } while (!ok && my === run && lastJudge === 'again');
+    if (my !== run) return;
     if (ok) await celebrate(l);
   }
-  if (my === run) { setSpeaker(null); ctx.$('#th-controls').classList.remove('busy'); }
+  if (my === run) {
+    setSpeaker(null); ctx.$('#th-controls').classList.remove('busy');
+    await say('N', 'Fine della scena. Applausi!', my);
+    ctx.confetti(['👏', '🎭', '⭐', '🎟️', '✨']);
+  }
 }
 
 /* ---------------- Avvio ---------------- */

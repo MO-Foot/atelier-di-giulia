@@ -1,12 +1,12 @@
 # Graph Report - disegno-giulia  (2026-11-15)
 
 ## Corpus Check
-- 14 files · ~20,154 words
+- 14 files · ~20,389 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 3 file(s) not represented in the graph (top: (none) 1, .rules 1, .css 1)
 
 ## Summary
-- 189 nodes · 377 edges · 8 communities
+- 189 nodes · 378 edges · 8 communities
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 13 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
@@ -29,8 +29,8 @@
 6. `openParent()` - 8 edges
 7. `say()` - 8 edges
 8. `setSpeaker()` - 8 edges
-9. `initTheater()` - 8 edges
-10. `activeSeason()` - 7 edges
+9. `playPieces()` - 8 edges
+10. `initTheater()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Decisioni prese` --references--> `normalizeProfile()`  [INFERRED]
@@ -67,7 +67,7 @@ Nodes (19): currentAlbum(), announceNewAlbum(), award(), chime(), confetti(), fi
 
 ### Community 6 - "store.js"
 Cohesion: 0.22
-Nodes (5): firebaseConfig, SETTINGS, ./firebase-bundle.js?v=20261115c, isDemo, store
+Nodes (5): firebaseConfig, SETTINGS, ./firebase-bundle.js?v=20261115d, isDemo, store
 
 ### Community 7 - "L'atelier di Giulia"
 Cohesion: 0.25
@@ -82,7 +82,7 @@ Cohesion: 0.11
 Nodes (17): BASE_CATS, CATEGORIES, LIBRARY, libraryExercises(), EXERCISES, P, SHAPE_PATHS, circle() (+9 more)
 
 ## Knowledge Gaps
-- **1 isolated node(s):** `./firebase-bundle.js?v=20261115c`
+- **1 isolated node(s):** `./firebase-bundle.js?v=20261115d`
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 55 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 
 ## Suggested Questions
@@ -90,13 +90,13 @@ _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `itemSvg()` connect `go` to `app.js`, `themes.js`, `finishDrawing`?**
   _High betweenness centrality (0.035) - this node is a cross-community bridge._
-- **What connects `./firebase-bundle.js?v=20261115c` to the rest of the system?**
+- **What connects `./firebase-bundle.js?v=20261115d` to the rest of the system?**
   _1 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `app.js` be split into smaller, more focused modules?**
   _Cohesion score 0.07171717171717172 - nodes in this community are weakly interconnected._
 - **Should `go` be split into smaller, more focused modules?**
   _Cohesion score 0.08067226890756303 - nodes in this community are weakly interconnected._
 - **Should `teatro.js` be split into smaller, more focused modules?**
-  _Cohesion score 0.12685560053981107 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1282051282051282 - nodes in this community are weakly interconnected._
 - **Should `themes.js` be split into smaller, more focused modules?**
   _Cohesion score 0.11255411255411256 - nodes in this community are weakly interconnected._

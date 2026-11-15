@@ -32,7 +32,7 @@ Leggere questo file e `graphify-out/GRAPH_REPORT.md` all'inizio di ogni sessione
 
 ## Teatro (recita di Giulia)
 - Recita scolastica "Sotto l'albero c'è posto per due"; Giulia è **Ada** e dice tutte le battute evidenziate (12, pagine 6, 10, 13, 14, 15: Mo conferma che non ce ne sono altre). Testo trascritto dalle foto in `js/teatro-copione.js` (con le battute degli altri che fanno da attacco e le indicazioni di scena lette dal narratore).
-- `js/teatro.js`: modalità **Ascolta** (tutta la scena con voci diverse), **A pezzi** (Ada dice un pezzo, Giulia ripete, poi tutta), **Recita** (attacco degli altri → "Tocca a te!" → microfono → valutazione). Riconoscimento: `webkitSpeechRecognition` di Safari (serve Siri attivo), avviato dentro il tocco sul 🎤; giusta se ≥70% delle parole in ordine; il genitore può sempre premere ✅/🔁/⏭️; "senza microfono" per saltare il riconoscimento.
+- `js/teatro.js`: modalità **Ascolta** (tutta la scena con voci diverse), **A pezzi** (richiesta di Mo: la scena scorre in ordine come alla recita; quando tocca ad Ada, Ada dice i pezzi e Giulia li ripete, poi si riascolta l'attacco e Giulia dice la battuta intera da sola), **Recita** (attacco degli altri → "Tocca a te!" → microfono → valutazione). Riconoscimento: `webkitSpeechRecognition` di Safari (serve Siri attivo), avviato dentro il tocco sul 🎤; giusta se ≥70% delle parole in ordine; il genitore può sempre premere ✅/🔁/⏭️; "senza microfono" per saltare il riconoscimento.
 - Voci: quelle italiane del tablet (sull'iPad di solito più di una) + tono/velocità diversi per personaggio; pulsante 🐢 per voci più lente. Opzione futura: voci registrate dalla famiglia.
 - 3 prove riuscite = battuta imparata = biglietto 🎟️ (`profile.theater`). Il teatro NON consuma i 15 minuti ed è raggiungibile anche dalla schermata "tempo finito".
 - Personaggi mostrati con emoji (nessuna immagine di Toy Story).
@@ -47,3 +47,4 @@ Leggere questo file e `graphify-out/GRAPH_REPORT.md` all'inizio di ogni sessione
 - 2026-11-15: Spiritelli e Fatine (serie originali con album) + prima pubblicazione automatica su GitHub.
 - 2026-11-15: Teatro per le prove di Ada. Versione `?v=20261115b`.
 - 2026-11-15 (pomeriggio): Mo segnala che il teatro si blocca dopo la prima battuta sull'iPad. Correzioni: frasi tenute in memoria (bug di Safari su "onend"), riavvio del motore voci se si incanta, microfono chiuso con `abort()` e pausa prima delle voci, la voce spiega di toccare il microfono, riga di stato con eventuali errori. Versione `?v=20261115c`. Causa non ancora confermata.
+- 2026-11-15: "A pezzi" rifatto come la recita (contesto della scena prima delle battute). Versione `?v=20261115d`.

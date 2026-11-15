@@ -1,12 +1,12 @@
-import { store, isDemo } from './store.js?v=20261115c';
-import { SETTINGS } from './config.js?v=20261115c';
-import { EXERCISES } from './shapes.js?v=20261115c';
-import { ALBUMS, SEASONS, ALBUM_ITEMS, ALL_ITEMS, currentAlbum, owned } from './animals.js?v=20261115c';
-import { samplePath, scoreTrace, scoreColor } from './scoring.js?v=20261115c';
-import { ALPHABET, LETTER_EXERCISES, letterInfo, LETTER_MIN_STARS } from './letters.js?v=20261115c';
-import { CATEGORIES } from './library.js?v=20261115c';
-import { THEMES, THEME_ITEMS, THEME_MIN_STARS, itemSvg } from './themes.js?v=20261115c';
-import { initTheater, openTheater } from './teatro.js?v=20261115c';
+import { store, isDemo } from './store.js?v=20261115d';
+import { SETTINGS } from './config.js?v=20261115d';
+import { EXERCISES } from './shapes.js?v=20261115d';
+import { ALBUMS, SEASONS, ALBUM_ITEMS, ALL_ITEMS, currentAlbum, owned } from './animals.js?v=20261115d';
+import { samplePath, scoreTrace, scoreColor } from './scoring.js?v=20261115d';
+import { ALPHABET, LETTER_EXERCISES, letterInfo, LETTER_MIN_STARS } from './letters.js?v=20261115d';
+import { CATEGORIES } from './library.js?v=20261115d';
+import { THEMES, THEME_ITEMS, THEME_MIN_STARS, itemSvg } from './themes.js?v=20261115d';
+import { initTheater, openTheater } from './teatro.js?v=20261115d';
 
 // Se un elemento manca (es. file vecchi rimasti in cache) l'app non deve bloccarsi:
 // $() restituisce un elemento finto invece di null.
