@@ -1,20 +1,26 @@
-import { store, isDemo } from './store.js';
-import { SETTINGS } from './config.js';
-import { EXERCISES } from './shapes.js';
-import { ALBUMS, SEASONS, ALBUM_ITEMS, ALL_ITEMS, currentAlbum, owned } from './animals.js';
-import { samplePath, scoreTrace, scoreColor } from './scoring.js';
+import { store, isDemo } from './store.js?v=20261115';
+import { SETTINGS } from './config.js?v=20261115';
+import { EXERCISES } from './shapes.js?v=20261115';
+import { ALBUMS, SEASONS, ALBUM_ITEMS, ALL_ITEMS, currentAlbum, owned } from './animals.js?v=20261115';
+import { samplePath, scoreTrace, scoreColor } from './scoring.js?v=20261115';
+import { ALPHABET, LETTER_EXERCISES, letterInfo, LETTER_MIN_STARS } from './letters.js?v=20261115';
+import { CATEGORIES } from './library.js?v=20261115';
+import { THEMES, THEME_ITEMS, THEME_MIN_STARS, itemSvg } from './themes.js?v=20261115';
 
-const $ = s => document.querySelector(s);
+// Se un elemento manca (es. file vecchi rimasti in cache) l'app non deve bloccarsi:
+// $() restituisce un elemento finto invece di null.
+const $ = s => document.querySelector(s) || (console.warn('elemento mancante:', s), document.createElement('div'));
 const $$ = s => [...document.querySelectorAll(s)];
 const pad = n => String(n).padStart(2, '0');
 
 const COLORS = ['#e63946', '#ff7b00', '#ffd23f', '#52b788', '#2ec4b6', '#3a86ff', '#7b5cff', '#ff5d8f', '#8d5524', '#2b2d42'];
-const CHILD_SCREENS = ['home', 'pick', 'draw', 'collection', 'gallery'];
-const LIMIT = SETTINGS.dailyMinutes * 60;
+const CHILD_SCREENS = ['home', 'pick', 'draw', 'collection', 'gallery', 'letters'];
+const BASE_LIMIT = SETTINGS.dailyMinutes * 60;
+const limit = () => BASE_LIMIT + (state.bonus || 0);   // + minuti extra del genitore
 
 const state = {
   user: null, profile: null, screen: 'login',
-  day: null, used: 0, pending: 0, timeUp: false, warned: false,
+  day: null, used: 0, bonus: 0, pending: 0, timeUp: false, warned: false,
   kind: 'trace', ex: null, strokes: [], current: null, pointerId: null,
   color: COLORS[6], size: 'big', eraser: false, size100: 0,
 };
@@ -37,7 +43,9 @@ export function activeSeason(d = seasonDate()) {
   return null;
 }
 
-const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null });
+const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null, letters: {} });
+const findEx = id => EXERCISES.find(e => e.id === id) || LETTER_EXERCISES.find(e => e.id === id);
+const traceLike = ex => ex.kind !== 'color';   // ricalco e lettere si valutano allo stesso modo
 
 /** Aggiorna un profilo salvato con la versione precedente dell'app. */
 function normalizeProfile(p) {
@@ -47,6 +55,7 @@ function normalizeProfile(p) {
   if (out.pumpkinStars && out.seasonStars.halloween === undefined) out.seasonStars.halloween = out.pumpkinStars;
   delete out.pumpkinStars;
   out.best = out.best || {};
+  out.letters = out.letters || {};
   return out;
 }
 
@@ -108,8 +117,9 @@ function show(name) {
 
 function go(where) {
   if (where === 'home') { renderHome(); show('home'); }
-  else if (where === 'trace' || where === 'color') { state.kind = where; renderPick(); show('pick'); }
+  else if (where === 'trace' || where === 'color') { if (state.kind !== where) state.cat = 'tutti'; state.kind = where; renderPick(); show('pick'); }
   else if (where === 'collection') { renderCollection(); show('collection'); }
+  else if (where === 'letters') { renderLetters(); show('letters'); }
   else if (where === 'gallery') { renderGallery(); show('gallery'); }
 }
 
@@ -160,14 +170,23 @@ function renderMeters() {
 function shapeSvg(ex) {
   const trace = ex.kind === 'trace';
   return `<svg viewBox="0 0 100 100" aria-hidden="true">
-    <path d="${ex.path}" fill="${trace ? 'none' : (ex.suggest || '#eee') + '55'}" stroke="${trace ? '#9a8aa8' : '#3b2c4a'}"
+    ${!trace && ex.area ? `<path d="${ex.area}" fill="${(ex.suggest || '#eee') + '55'}"/>` : ''}
+    <path d="${ex.path}" fill="${trace || ex.area ? 'none' : (ex.suggest || '#eee') + '55'}" stroke="${trace ? '#9a8aa8' : '#3b2c4a'}"
       stroke-width="${trace ? 3 : 3}" stroke-dasharray="${trace ? '5 4' : ''}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 
 function renderPick() {
   const se = activeSeason();
   $('#pick-title').textContent = state.kind === 'trace' ? '✏️ Ricalca' : '🖍️ Colora';
-  const list = EXERCISES.filter(e => e.kind === state.kind && (!e.season || e.season === se))
+  const all = EXERCISES.filter(e => e.kind === state.kind && (!e.season || e.season === se));
+  // categorie (chip): Tutti, stagione attiva, poi le categorie della libreria
+  const chips = [{ id: 'tutti', name: 'Tutti', icon: '🌈' }];
+  if (se && all.some(e => e.season === se)) chips.push({ id: 'season', name: SEASONS[se].name, icon: SEASONS[se].badge });
+  chips.push(...Object.entries(THEMES).map(([id, t]) => ({ id, name: t.short, icon: t.icon })));
+  chips.push(...CATEGORIES.filter(c => all.some(e => e.cat === c.id)));
+  if (!chips.some(c => c.id === state.cat)) state.cat = 'tutti';
+  $('#pick-cats').innerHTML = chips.map(c => `<button class="chip ${c.id === state.cat ? 'on' : ''}" data-cat="${c.id}">${c.icon} ${c.name}</button>`).join('');
+  const list = all.filter(e => state.cat === 'tutti' || (state.cat === 'season' ? e.season : e.cat === state.cat))
     .sort((a, b) => (b.season ? 1 : 0) - (a.season ? 1 : 0) || a.level - b.level);
   const best = state.profile.best || {};
   $('#pick-grid').innerHTML = list.map(e => `
@@ -184,21 +203,29 @@ const cvPaint = $('#cv-paint'), cvTop = $('#cv-top');
 const ctxP = cvPaint.getContext('2d'), ctxT = cvTop.getContext('2d');
 
 function openExercise(id) {
-  state.ex = EXERCISES.find(e => e.id === id);
+  stopDemo();
+  state.ex = findEx(id);
   state.strokes = []; state.current = null; state.eraser = false;
   const isColor = state.ex.kind === 'color';
   state.color = isColor ? (state.ex.suggest || COLORS[0]) : COLORS[6];
   state.size = 'big';
   $('#draw-title').textContent = `${state.ex.emoji} ${state.ex.name}`;
   $('#size-row').classList.toggle('hidden', !isColor);
+  $('#btn-demo').classList.toggle('hidden', state.ex.kind !== 'letter');
   renderPalette();
   show('draw');
   layoutStage();
   sayInstruction();
+  if (state.ex.kind === 'letter') setTimeout(() => playDemo(), 900);
 }
 
 function sayInstruction() {
   const ex = state.ex;
+  if (ex.kind === 'letter') {
+    const a = letterInfo(ex.letter);
+    speak(`Questa è la ${a.say} ${ex.case === 'up' ? 'maiuscola' : 'minuscola'}. ${a.say}, come ${a.word}! Guarda come si scrive, poi ripassala partendo dal numero uno.`);
+    return;
+  }
   speak(ex.kind === 'trace'
     ? `Ripassa ${ex.name.toLowerCase()} seguendo la linea tratteggiata. Parti dal pallino verde!`
     : `Colora ${ex.name.toLowerCase()} restando dentro i bordi!`);
@@ -231,7 +258,8 @@ function drawGuide(ctx) {
   const ex = state.ex, path = new Path2D(ex.path);
   ctx.save();
   ctx.lineCap = ctx.lineJoin = 'round';
-  if (ex.kind === 'trace') {
+  if (ex.kind === 'letter') { drawLetterGuide(ctx, ex); }
+  else if (ex.kind === 'trace') {
     ctx.strokeStyle = ex.season ? '#ffe2c8' : '#fff0c9'; ctx.lineWidth = 8; ctx.stroke(path);
     ctx.strokeStyle = '#9a8aa8'; ctx.lineWidth = 1.1; ctx.setLineDash([2.6, 2.4]); ctx.stroke(path);
     ctx.setLineDash([]);
@@ -246,7 +274,7 @@ function drawGuide(ctx) {
 
 function startPoint(d) { const m = d.match(/M\s*([\d.]+)[ ,]+([\d.]+)/); return { x: +m[1], y: +m[2] }; }
 
-const brush = () => state.ex.kind === 'trace' ? 2.6 : state.size === 'big' ? 8 : 3.5;
+const brush = () => traceLike(state.ex) ? 2.6 : state.size === 'big' ? 8 : 3.5;
 
 function drawStroke(ctx, s, from = 0) {
   ctx.save();
@@ -268,7 +296,7 @@ function drawStroke(ctx, s, from = 0) {
 function redrawAll() {
   ctxP.clearRect(0, 0, 100, 100); ctxT.clearRect(0, 0, 100, 100);
   if (!state.ex) return;
-  if (state.ex.kind === 'trace') {
+  if (traceLike(state.ex)) {
     drawGuide(ctxP);
     state.strokes.forEach(s => drawStroke(ctxP, s));
   } else {
@@ -284,6 +312,7 @@ function toUnits(e) {
 
 cvPaint.addEventListener('pointerdown', e => {
   if (state.pointerId !== null || state.timeUp) return;
+  stopDemo();
   e.preventDefault();
   state.pointerId = e.pointerId;
   cvPaint.setPointerCapture(e.pointerId);
@@ -307,6 +336,10 @@ cvPaint.addEventListener('pointerup', endStroke);
 cvPaint.addEventListener('pointercancel', endStroke);
 cvPaint.addEventListener('contextmenu', e => e.preventDefault());
 
+$('#pick-cats').addEventListener('click', e => {
+  const b = e.target.closest('[data-cat]'); if (!b) return;
+  state.cat = b.dataset.cat; renderPick();
+});
 $('#palette').addEventListener('click', e => {
   const b = e.target.closest('.swatch'); if (!b) return;
   state.color = b.dataset.color; state.eraser = false; renderPalette();
@@ -319,7 +352,8 @@ $('#btn-eraser').onclick = () => { state.eraser = !state.eraser; renderPalette()
 $('#btn-undo').onclick = () => { state.strokes.pop(); redrawAll(); };
 $('#btn-clear').onclick = () => { state.strokes = []; redrawAll(); };
 $('#btn-say').onclick = sayInstruction;
-$('#draw-back').onclick = () => go(state.ex.kind);
+$('#draw-back').onclick = () => { stopDemo(); go(state.ex.kind === 'letter' ? 'letters' : state.ex.kind); };
+$('#btn-demo').onclick = () => playDemo();
 
 /* ---------- Finito! ---------- */
 $('#btn-done').onclick = finishDrawing;
@@ -329,11 +363,11 @@ async function finishDrawing() {
   if (!state.strokes.some(s => !s.erase)) { toast('Prima disegna! ✏️'); speak('Prima disegna!'); return; }
 
   let res;
-  if (ex.kind === 'trace') {
+  if (traceLike(ex)) {
     if (!targetCache.has(ex.id)) targetCache.set(ex.id, samplePath(ex.path, 100));
     res = scoreTrace(targetCache.get(ex.id), state.strokes.map(s => s.pts), 100, SETTINGS.traceTolerance);
   } else {
-    res = scoreColor(ex.path, cvPaint);
+    res = scoreColor(ex.area || ex.path, cvPaint);
   }
   const stars = res.stars;
   const p = state.profile;
@@ -354,6 +388,14 @@ const pickRandom = arr => arr[Math.floor(Math.random() * arr.length)];
 function award(ex, stars) {
   if (!stars) return null;
   const p = state.profile;
+  if (ex.kind === 'letter') {
+    // Album dell'alfabeto: la lettera entra quando maiuscola e minuscola hanno almeno LETTER_MIN_STARS stelle
+    p.letters = p.letters || {};
+    const up = p.best[`L-${ex.letter}-up`] || 0, lo = p.best[`L-${ex.letter}-lo`] || 0;
+    if (p.letters[ex.letter] || up < LETTER_MIN_STARS || lo < LETTER_MIN_STARS) return null;
+    p.letters[ex.letter] = 1;
+    return { letter: letterInfo(ex.letter), allLetters: ALPHABET.every(a => p.letters[a.l]) };
+  }
   const points = stars + (ex.level === 3 && stars >= 2 ? 1 : 0);
   const se = ex.season && ex.season === activeSeason() ? ex.season : null;
 
@@ -369,6 +411,14 @@ function award(ex, stars) {
     const isNew = !p.collection[animal.id];
     p.collection[animal.id] = (p.collection[animal.id] || 0) + 1;
     return { animal, season: se, isNew };
+  }
+
+  // Spiritelli e fatine: il disegno di un personaggio fa vincere quel personaggio (se non lo si ha già)
+  if (ex.prize && !p.collection[ex.prize] && stars >= THEME_MIN_STARS) {
+    const item = THEME_ITEMS.find(i => i.id === ex.prize);
+    p.collection[item.id] = 1;
+    const t = THEMES[item.theme];
+    return { animal: item, theme: item.theme, isNew: true, themeDone: t.items.every(i => p.collection[i.id]) };
   }
 
   // Uovo dell'album in corso
@@ -402,7 +452,7 @@ function feedback(ex, res) {
   const head = ['Riprova, ce la puoi fare! 💪', 'Bene! 👍', 'Molto brava! 🎉', 'Fantastico! 🌟'][s];
   let tip = '';
   if (s < 3) {
-    if (ex.kind === 'trace') tip = res.coverage < 0.75 ? 'Ripassa tutta la linea, fino alla fine.' : 'Cerca di stare sopra la linea tratteggiata.';
+    if (traceLike(ex)) tip = res.coverage < 0.75 ? 'Ripassa tutta la linea, fino alla fine.' : 'Cerca di stare sopra la linea tratteggiata.';
     else tip = res.spill > 0.12 ? 'Cerca di restare dentro i bordi.' : 'Colora tutto il disegno, senza lasciare buchi.';
   }
   return { head, tip };
@@ -413,7 +463,21 @@ function showResult(ex, res, prize) {
   $('#res-stars').innerHTML = [0, 1, 2].map(i => `<span class="${i < res.stars ? '' : 'off'}" style="animation-delay:${i * 0.25}s">⭐</span>`).join('');
   $('#res-msg').innerHTML = head + (tip ? `<br><small style="font-weight:600;font-size:1.2rem">${tip}</small>` : '');
   const box = $('#res-prize');
-  if (prize) {
+  if (prize && prize.letter) {
+    const L = prize.letter;
+    box.className = 'prize letter';
+    box.innerHTML = `<div class="p-title">📖 Nuova lettera nel tuo album!</div>
+      <div class="p-letter">${L.l} ${L.l.toLowerCase()}</div>
+      <div class="p-name">${L.l} come ${L.word} ${L.emoji}</div>` +
+      (prize.allLetters ? '<div class="p-album">🏆 Hai imparato tutto l\'alfabeto! 👑</div>' : '');
+  } else if (prize && prize.theme) {
+    const a = prize.animal, T = THEMES[prize.theme];
+    box.className = 'prize theme';
+    box.innerHTML = `<div class="p-title">${T.won}</div>
+      <div class="p-svg">${itemSvg(a)}</div>
+      <div class="p-name">${a.name}!</div>` +
+      (prize.themeDone ? `<div class="p-album">🏆 Album «${T.name}» completo!</div>` : '');
+  } else if (prize) {
     const a = prize.animal;
     box.className = 'prize' + (prize.season ? ' special ' + prize.season : '');
     let extra = '';
@@ -429,7 +493,16 @@ function showResult(ex, res, prize) {
   renderMeters();
 
   if (res.stars) chime(res.stars === 3 ? [660, 880, 1100, 1320] : [660, 880]);
-  if (prize) {
+  // pulsante "avanti": dopo la maiuscola si passa alla minuscola della stessa lettera
+  $('#res-next').textContent = ex.kind === 'letter' && ex.case === 'up' ? `Ora la ${ex.letter.toLowerCase()} piccola ➡️`
+    : ex.kind === 'letter' ? 'Altre lettere ➡️' : 'Altro disegno ➡️';
+  if (prize && prize.letter) {
+    setTimeout(() => { chime([523, 659, 784, 1047, 1319]); confetti([prize.letter.l, prize.letter.l.toLowerCase(), prize.letter.emoji, '⭐', '✨']); }, 700);
+    speak(`${head.replace(/[^\p{L}\p{N} ,!.']/gu, '')} La ${prize.letter.say} entra nel tuo album! ${prize.letter.say} come ${prize.letter.word}!` + (prize.allLetters ? ' Hai imparato tutto l\'alfabeto!' : ''));
+  } else if (prize && prize.theme) {
+    setTimeout(() => { chime([523, 659, 784, 1047, 1319]); confetti([prize.animal.emoji, '✨', '⭐', THEMES[prize.theme].icon, '💖']); }, 700);
+    speak(`${head.replace(/[^\p{L}\p{N} ,!.']/gu, '')} ${prize.animal.name} entra nel tuo album!` + (prize.themeDone ? ` Hai completato l'album ${THEMES[prize.theme].name}!` : ''));
+  } else if (prize) {
     setTimeout(() => {
       chime(prize.albumDone ? [523, 659, 784, 1047, 1319, 1568] : [523, 659, 784, 1047]);
       confetti(prize.season ? SEASONS[prize.season].confetti : prize.albumDone ? ['🏆', '⭐', '🎉', '👑', '✨'] : undefined);
@@ -443,13 +516,19 @@ function showResult(ex, res, prize) {
 }
 
 $('#res-again').onclick = () => { $('#overlay-result').classList.add('hidden'); state.strokes = []; redrawAll(); };
-$('#res-next').onclick = () => { $('#overlay-result').classList.add('hidden'); go(state.ex.kind); };
+$('#res-next').onclick = () => {
+  $('#overlay-result').classList.add('hidden');
+  const ex = state.ex;
+  if (ex.kind === 'letter') ex.case === 'up' ? openExercise(`L-${ex.letter}-lo`) : go('letters');
+  else go(ex.kind);
+};
 
 /* ======================= Collezione e galleria ======================= */
 function animalCard(a, count) {
   return `<div class="animal ${a.season ? 'special ' + a.season : ''} ${count ? '' : 'locked'}">
     ${count > 1 ? `<span class="a-count">×${count}</span>` : ''}
-    <span class="a-emoji" style="${a.filter ? `--f:${a.filter}` : ''}">${a.emoji}</span>${a.costume ? `<span class="a-costume">${a.costume}</span>` : ''}
+    ${a.theme ? `<span class="a-emoji a-svg">${itemSvg(a)}</span>`
+      : `<span class="a-emoji" style="${a.filter ? `--f:${a.filter}` : ''}">${a.emoji}</span>`}${a.costume ? `<span class="a-costume">${a.costume}</span>` : ''}
     <span class="a-name">${a.name}</span></div>`;
 }
 
@@ -459,6 +538,15 @@ function renderCollection() {
   const cur = currentAlbum(c);
   const curIdx = cur ? ALBUMS.indexOf(cur) : ALBUMS.length;
   let html = '', shown = [];
+
+  // Spiritelli e fatine (sempre visibili)
+  for (const T of Object.values(THEMES)) {
+    shown.push(...T.items);
+    const done = owned(T.items, c) === T.items.length;
+    html += `<h3 class="sub-title">${T.icon} ${T.name} <span class="pill ${done ? 'done' : ''}">${done ? '🏆 ' : ''}${owned(T.items, c)} / ${T.items.length}</span></h3>
+      <p class="theme-hint">Fai bene il disegno di un personaggio (in Ricalca o Colora) per farlo entrare nell'album.</p>
+      <div class="coll-grid">${T.items.map(a => animalCard(a, c[a.id] || 0)).join('')}</div>`;
+  }
 
   // Serie stagionali: quella attiva per prima, le altre solo se ne ha già almeno uno
   const seasonIds = Object.keys(SEASONS).sort((a, b) => (b === se) - (a === se));
@@ -485,6 +573,102 @@ function renderCollection() {
   }
   $('#coll-sections').innerHTML = html;
   $('#coll-count').textContent = `${owned(shown, c)} / ${shown.length}`;
+}
+
+/* ======================= Lettere ======================= */
+function renderLetters() {
+  const p = state.profile, best = p.best || {}, got = p.letters || {};
+  const mark = n => (n ? '⭐'.repeat(n) : '');
+  $('#letters-grid').innerHTML = ALPHABET.map(a => `
+    <div class="lcard ${got[a.l] ? 'done' : ''}">
+      <div class="l-pair">
+        <button class="l-btn" data-ex="L-${a.l}-up" aria-label="${a.l} maiuscola">${a.l}<small>${mark(best[`L-${a.l}-up`])}</small></button>
+        <button class="l-btn" data-ex="L-${a.l}-lo" aria-label="${a.l.toLowerCase()} minuscola">${a.l.toLowerCase()}<small>${mark(best[`L-${a.l}-lo`])}</small></button>
+      </div>
+      <span class="l-word"><span class="l-emoji">${a.emoji}</span> <span>${got[a.l] ? a.word : '?'}</span></span>
+    </div>`).join('');
+  $('#letters-count').textContent = `📖 ${ALPHABET.filter(a => got[a.l]).length} / ${ALPHABET.length}`;
+}
+
+const STROKE_COLORS = ['#e63946', '#2a9d8f', '#3a86ff', '#ff7b00'];
+const strokeCache = new Map();
+function strokePoints(d) {
+  if (!strokeCache.has(d)) strokeCache.set(d, samplePath(d, 100, 60));
+  return strokeCache.get(d);
+}
+
+/** Righe del quaderno + lettera tratteggiata + numeri e frecce per l'ordine dei tratti. */
+function drawLetterGuide(ctx, ex) {
+  ctx.save();
+  ctx.lineCap = ctx.lineJoin = 'round';
+  // righe
+  const line = (y, color, dash) => { ctx.beginPath(); ctx.setLineDash(dash || []); ctx.strokeStyle = color; ctx.lineWidth = 0.5; ctx.moveTo(4, y); ctx.lineTo(96, y); ctx.stroke(); };
+  line(20, '#d9cde6'); line(48, '#c9b8da', [2, 2]); line(80, '#9a8aa8'); line(96, '#eee6f4');
+  ctx.setLineDash([]);
+  // lettera
+  ex.strokes.forEach(d => {
+    const path = new Path2D(d);
+    ctx.strokeStyle = '#e4f1ff'; ctx.lineWidth = 8; ctx.stroke(path);
+    ctx.strokeStyle = '#9a8aa8'; ctx.lineWidth = 1.1; ctx.setLineDash([2.6, 2.4]); ctx.stroke(path); ctx.setLineDash([]);
+  });
+  // numeri e frecce
+  ex.strokes.forEach((d, i) => {
+    const pts = strokePoints(d), c = STROKE_COLORS[i % STROKE_COLORS.length];
+    const a = pts[0];
+    let b = pts[Math.min(pts.length - 1, 12)];
+    for (const p of pts) { if (Math.hypot(p.x - a.x, p.y - a.y) >= 9) { b = p; break; } }
+    const ang = Math.atan2(b.y - a.y, b.x - a.x);
+    // freccia
+    ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(a.x + Math.cos(ang) * 3.5, a.y + Math.sin(ang) * 3.5); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(b.x + Math.cos(ang) * 2.2, b.y + Math.sin(ang) * 2.2);
+    ctx.lineTo(b.x + Math.cos(ang + 2.5) * 2.6, b.y + Math.sin(ang + 2.5) * 2.6);
+    ctx.lineTo(b.x + Math.cos(ang - 2.5) * 2.6, b.y + Math.sin(ang - 2.5) * 2.6); ctx.closePath(); ctx.fill();
+    // numero
+    ctx.beginPath(); ctx.arc(a.x, a.y, 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 4.2px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(i + 1), a.x, a.y + 0.2);
+  });
+  ctx.restore();
+}
+
+/** Animazione: una manina disegna i tratti uno dopo l'altro (sul livello superiore, che non riceve tocchi). */
+let demoRaf = null;
+function stopDemo() {
+  if (demoRaf) cancelAnimationFrame(demoRaf);
+  demoRaf = null;
+  if (state.ex && traceLike(state.ex)) ctxT.clearRect(0, 0, 100, 100);
+}
+function playDemo() {
+  const ex = state.ex;
+  if (!ex || ex.kind !== 'letter' || state.screen !== 'draw') return;
+  stopDemo();
+  const strokes = ex.strokes.map(strokePoints);
+  const perStroke = 1100, pause = 250;
+  const t0 = performance.now();
+  const frame = now => {
+    const t = now - t0;
+    ctxT.clearRect(0, 0, 100, 100);
+    ctxT.save(); ctxT.lineCap = ctxT.lineJoin = 'round'; ctxT.lineWidth = 3;
+    let hand = null;
+    strokes.forEach((pts, i) => {
+      const start = i * (perStroke + pause);
+      const f = Math.max(0, Math.min(1, (t - start) / perStroke));
+      if (f <= 0) return;
+      const n = Math.max(1, Math.round(f * (pts.length - 1)));
+      ctxT.strokeStyle = STROKE_COLORS[i % STROKE_COLORS.length];
+      ctxT.beginPath(); ctxT.moveTo(pts[0].x, pts[0].y);
+      for (let k = 1; k <= n; k++) ctxT.lineTo(pts[k].x, pts[k].y);
+      ctxT.stroke();
+      if (f < 1) hand = pts[n];
+    });
+    if (hand) { ctxT.font = '9px sans-serif'; ctxT.textAlign = 'left'; ctxT.textBaseline = 'top'; ctxT.fillText('☝️', hand.x - 1.5, hand.y - 0.5); }
+    ctxT.restore();
+    const total = strokes.length * (perStroke + pause) + 700;
+    if (t < total) demoRaf = requestAnimationFrame(frame);
+    else { demoRaf = null; ctxT.clearRect(0, 0, 100, 100); }
+  };
+  demoRaf = requestAnimationFrame(frame);
 }
 
 async function renderGallery(target = '#gallery-grid', withDelete = false) {
@@ -531,18 +715,34 @@ $('#gate-cancel').onclick = () => $('#overlay-gate').classList.add('hidden');
 $('#btn-parent').onclick = openGate;
 $('#timeup-parent').onclick = openGate;
 
+async function addFiveMinutes() {
+  // 5 minuti in più da adesso (se il tempo era già scaduto da qualche secondo, si recupera anche quello)
+  const extra = 5 * 60 + Math.max(0, state.used - limit());
+  state.bonus += extra;
+  try { await store.addBonus(state.day, extra); } catch (e) { console.warn('bonus', e); }
+  state.timeUp = false; state.warned = false;
+  $('#overlay-timeup').classList.add('hidden');
+  updateTimeUI();
+  openParent();
+  toast('⏳ +5 minuti!');
+}
+$('#btn-plus5').onclick = addFiveMinutes;
+
 function openParent() {
   flushTime();
   $('#overlay-timeup').classList.add('hidden');
   const m = Math.floor(state.used / 60), s = state.used % 60;
-  $('#p-today').textContent = `Tempo usato oggi: ${m} min ${pad(s)} s su ${SETTINGS.dailyMinutes} min.`;
+  const extraMin = Math.round((state.bonus || 0) / 60);
+  $('#p-today').textContent = `Tempo usato oggi: ${m} min ${pad(s)} s su ${SETTINGS.dailyMinutes} min` + (extraMin ? ` + ${extraMin} min extra.` : '.');
   $('#p-account').textContent = isDemo ? 'Modalità prova (Firebase non configurato): dati salvati solo su questo dispositivo.'
     : `Account: ${state.user.email || state.user.displayName}`;
   const c = state.profile.collection || {};
   const cur = currentAlbum(c);
   const lines = ALBUMS.map(A => `${A.icon} ${A.name}: ${owned(A.items, c)}/${A.items.length}`)
+    .concat(Object.values(THEMES).map(T => `${T.icon} ${T.name}: ${owned(T.items, c)}/${T.items.length}`))
     .concat(Object.entries(SEASONS).map(([id, S]) => `${S.badge} ${S.name}: ${owned(S.items, c)}/${S.items.length} (stelle ${state.profile.seasonStars[id] || 0}/${SETTINGS.seasons[id]?.stars ?? '-'})`));
-  $('#p-coll').innerHTML = `Album in corso: <b>${cur ? cur.name : 'tutti completi'}</b> · stelle nell'uovo ${state.profile.eggStars}/${SETTINGS.starsPerEgg}<br>` + lines.join('<br>');
+  const nLet = ALPHABET.filter(a => (state.profile.letters || {})[a.l]).length;
+  $('#p-coll').innerHTML = `Alfabeto: <b>${nLet}/${ALPHABET.length}</b> lettere nell'album<br>Album in corso: <b>${cur ? cur.name : 'tutti completi'}</b> · stelle nell'uovo ${state.profile.eggStars}/${SETTINGS.starsPerEgg}<br>` + lines.join('<br>');
   renderGallery('#p-gallery', true);
   show('parent');
 }
@@ -576,6 +776,8 @@ async function startDay() {
   let remote = 0;
   try { remote = await store.getSeconds(state.day); } catch (e) { console.warn('tempo', e); }
   state.used = Math.max(remote, localUsed(state.day));
+  state.bonus = 0;
+  try { state.bonus = await store.getBonus(state.day); } catch (e) { console.warn('bonus', e); }
   updateTimeUI();
   checkLimit(true);
 }
@@ -587,15 +789,15 @@ function flushTime() {
 }
 
 function updateTimeUI() {
-  const left = Math.max(0, LIMIT - state.used);
+  const left = Math.max(0, limit() - state.used);
   const fill = $('#time-fill');
-  fill.style.width = (left / LIMIT) * 100 + '%';
+  fill.style.width = Math.min(100, (left / BASE_LIMIT) * 100) + '%';
   fill.classList.toggle('low', left <= 120);
   $('.timebox').title = `Tempo rimasto: ${Math.ceil(left / 60)} min`;
 }
 
 function checkLimit(silent = false) {
-  const left = LIMIT - state.used;
+  const left = limit() - state.used;
   if (left <= 0) {
     if (!state.timeUp) {
       state.timeUp = true; flushTime();
@@ -672,4 +874,5 @@ async function boot() {
 boot();
 
 // per i test automatici
+window.__dgReady = true;
 window.__dg = { state, activeSeason, scoreTrace, scoreColor, samplePath, award, normalizeProfile, go };

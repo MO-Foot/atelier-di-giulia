@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=20261115">
 </head>
 <body>
   <!-- Accesso genitore -->
@@ -54,6 +54,7 @@
     <div class="tiles">
       <button class="tile tile-trace" data-go="trace"><span class="tile-emoji">✏️</span><span>Ricalca</span></button>
       <button class="tile tile-color" data-go="color"><span class="tile-emoji">🖍️</span><span>Colora</span></button>
+      <button class="tile tile-letters" data-go="letters"><span class="tile-emoji">🔤</span><span>Lettere</span></button>
       <button class="tile tile-coll" data-go="collection"><span class="tile-emoji">🐾</span><span>Animaletti</span></button>
       <button class="tile tile-gal" data-go="gallery"><span class="tile-emoji">🖼️</span><span>I miei disegni</span></button>
     </div>
@@ -65,6 +66,7 @@
       <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
       <h2 id="pick-title">Ricalca</h2>
     </div>
+    <div id="pick-cats" class="chips"></div>
     <div id="pick-grid" class="pick-grid"></div>
   </section>
 
@@ -73,6 +75,7 @@
     <div class="screen-head">
       <button class="icon-btn back" id="draw-back" aria-label="Indietro">⬅️</button>
       <h2 id="draw-title"></h2>
+      <button class="icon-btn hidden" id="btn-demo" aria-label="Guarda come si scrive">👀</button>
       <button class="icon-btn" id="btn-say" aria-label="Ripeti istruzione">🔊</button>
     </div>
     <div class="draw-layout">
@@ -97,6 +100,16 @@
   </section>
 
   <!-- Collezione -->
+  <!-- Lettere: scelta + album dell'alfabeto -->
+  <section id="screen-letters" class="screen hidden">
+    <div class="screen-head">
+      <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
+      <h2>🔤 Le lettere <span id="letters-count" class="pill"></span></h2>
+    </div>
+    <p class="letters-hint">Tocca la lettera grande o quella piccola. Quando le fai bene tutte e due, la lettera entra nel tuo album! 📖</p>
+    <div id="letters-grid" class="letters-grid"></div>
+  </section>
+
   <section id="screen-collection" class="screen hidden">
     <div class="screen-head">
       <button class="icon-btn back" data-go="home" aria-label="Indietro">⬅️</button>
@@ -125,6 +138,7 @@
       <div class="parent-card">
         <h3>Oggi</h3>
         <p id="p-today"></p>
+        <button id="btn-plus5" class="btn btn-primary">⏳ +5 minuti oggi</button>
         <p id="p-account" class="small"></p>
       </div>
       <div class="parent-card">
@@ -178,6 +192,27 @@
   <div id="toast" class="toast hidden"></div>
   <div id="confetti"></div>
 
-  <script type="module" src="js/app.js"></script>
+  <!-- Se l'app non parte (errore o file vecchi in cache) mostra un pulsante per ricaricare -->
+  <div id="boot-error" style="display:none;position:fixed;inset:0;z-index:99;background:#fff6e9;font-family:system-ui,sans-serif;text-align:center;padding:40px 20px">
+    <div style="font-size:4rem">🔄</div>
+    <h2 style="margin:10px 0">L'app si sta aggiornando</h2>
+    <p>Tocca il pulsante per ricaricarla.</p>
+    <button onclick="location.replace(location.pathname + '?r=' + Date.now())" style="font-size:1.4rem;padding:14px 30px;border-radius:999px;border:3px solid #3b2c4a;background:#ff8a3d;color:#fff;font-weight:700">Ricarica</button>
+    <p id="boot-error-msg" style="color:#999;font-size:.8rem;margin-top:24px"></p>
+  </div>
+  <script>
+    (function () {
+      function fail(msg) {
+        if (window.__dgReady) return;
+        var box = document.getElementById('boot-error');
+        box.style.display = 'block';
+        document.getElementById('boot-error-msg').textContent = msg || '';
+      }
+      window.addEventListener('error', function (e) { fail(e.message); });
+      window.addEventListener('unhandledrejection', function (e) { fail(String(e.reason)); });
+      setTimeout(function () { if (!window.__dgReady) fail('timeout'); }, 12000);
+    })();
+  </script>
+  <script type="module" src="js/app.js?v=20261115"></script>
 </body>
 </html>

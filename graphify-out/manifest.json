@@ -1,0 +1,80 @@
+{
+  "js/animals.js": {
+    "mtime": 1793631811.6858494,
+    "seen": 1793696231.2221017,
+    "ast_hash": "0970389f4893eb4c90fe9a35c086488e",
+    "semantic_hash": ""
+  },
+  "js/app.js": {
+    "mtime": 1794741614.1280382,
+    "seen": 1794741668.4967403,
+    "ast_hash": "bc6520ac2794e5c0ff69e168ae86a3dd",
+    "semantic_hash": ""
+  },
+  "js/config.js": {
+    "mtime": 1793631841.651319,
+    "seen": 1793696231.2221117,
+    "ast_hash": "1d1c00a4e00244786da883e3a31c44d3",
+    "semantic_hash": ""
+  },
+  "js/scoring.js": {
+    "mtime": 1793632055.449796,
+    "seen": 1793696231.2221134,
+    "ast_hash": "a0b4055e6461eb35fdc8750babda5261",
+    "semantic_hash": ""
+  },
+  "js/shapes.js": {
+    "mtime": 1794741614.1273417,
+    "seen": 1794741668.4967487,
+    "ast_hash": "4ffdf7f1abb3f50e6f667b8e52869382",
+    "semantic_hash": ""
+  },
+  "js/store.js": {
+    "mtime": 1794740552.991717,
+    "seen": 1794740622.5804155,
+    "ast_hash": "9bd8dd680a17e856051760b617e150ae",
+    "semantic_hash": ""
+  },
+  "manifest.json": {
+    "mtime": 1793302018.3652077,
+    "seen": 1793696231.2221174,
+    "ast_hash": "10bd15bdc6dc3e84b2086ddb13f60cb7",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1793894346.8808877,
+    "seen": 1794740622.5804186,
+    "ast_hash": "5997d4c55884e1ec34285b2bfa89f367",
+    "semantic_hash": ""
+  },
+  "index.html": {
+    "mtime": 1794740553.0040176,
+    "seen": 1794740622.5804195,
+    "ast_hash": "fef7bd262422d0cff8558c1e2e4b7de6",
+    "semantic_hash": ""
+  },
+  "CONTESTO.md": {
+    "mtime": 1794740626.6869109,
+    "seen": 1794741668.496754,
+    "ast_hash": "63904a1d40bb2e679614dcc2673db983",
+    "semantic_hash": ""
+  },
+  "js/letters.js": {
+    "mtime": 1793894019.7745821,
+    "seen": 1793894346.72141,
+    "ast_hash": "d18215db6619357f9a593108d33e5b25",
+    "semantic_hash": ""
+  },
+  "js/library.js": {
+    "mtime": 1794740529.677381,
+    "seen": 1794740622.5804121,
+    "ast_hash": "8fa311a59dd8b449793d2dbd6c6ce8d6",
+    "semantic_hash": ""
+  },
+  "js/themes.js": {
+    "mtime": 1794741579.8134608,
+    "seen": 1794741668.4967513,
+    "ast_hash": "80c18fd1827a78a0b55b672946995d6b",
+    "semantic_hash": ""
+  }
+}

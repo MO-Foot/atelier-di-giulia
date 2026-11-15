@@ -4,7 +4,8 @@ Webapp per tablet per imparare a disegnare (6 anni): **ricalcare** sagome tratte
 Ogni disegno riceve da 0 a 3 stelle. Le stelle fanno schiudere un **uovo** (8 stelle) che dà un animaletto dell'**album in corso**: Animaletti → Fattoria e bosco → Il mare → Dinosauri → Creature magiche. Ogni album si apre quando il precedente è completo.
 Serie stagionali: a **Halloween** (15 ottobre – 10 novembre) i disegni di Halloween aprono la **zucca magica** (5 stelle); a **Natale** (1° dicembre – 6 gennaio) i disegni di Natale aprono il **pacco regalo** (6 stelle).
 Per vedere in anticipo una stagione: aggiungi `?data=2026-12-10` all'indirizzo (cambia solo le stagioni, non il timer).
-Limite di **15 minuti al giorno**, salvato su Firebase così vale anche se si ricarica la pagina o si cambia dispositivo.
+**Lettere**: tutte le 26 lettere, maiuscole e minuscole, con l'ordine dei tratti mostrato da numeri, frecce e animazione; ogni lettera fatta bene in tutte e due le forme entra nell'album dell'alfabeto.
+Limite di **15 minuti al giorno** (il genitore può aggiungere 5 minuti dall'area ⚙️), salvato su Firebase così vale anche se si ricarica la pagina o si cambia dispositivo.
 
 Funziona subito in **modalità prova** (dati solo sul dispositivo) finché `js/config.js` è vuoto.
 

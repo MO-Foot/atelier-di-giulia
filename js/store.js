@@ -3,12 +3,12 @@
 //
 // Struttura in Firestore:
 //   users/{uid}                    → { collection: {idAnimale: quanti}, eggStars, seasonStars: {halloween, natale}, best: {idEsercizio: stelle}, seenAlbum }
-//   users/{uid}/days/{AAAA-MM-GG}  → { seconds }            (tempo usato quel giorno)
+//   users/{uid}/days/{AAAA-MM-GG}  → { seconds, bonus }     (tempo usato quel giorno, secondi extra concessi)
 //   users/{uid}/drawings/{id}      → { img, exerciseId, kind, stars, createdAt }   (galleria)
 
-import { firebaseConfig } from './config.js';
+import { firebaseConfig } from './config.js?v=20261115';
 
-const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null });
+const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null, letters: {} });
 
 export const isDemo = !firebaseConfig.apiKey;
 
@@ -28,6 +28,8 @@ function demoStore() {
     async saveProfile(p) { const s = read(); s.profile = p; write(s); },
     async getSeconds(day) { return (read().days || {})[day] || 0; },
     async addSeconds(day, n) { const s = read(); s.days = s.days || {}; s.days[day] = (s.days[day] || 0) + n; write(s); },
+    async getBonus(day) { return (read().bonus || {})[day] || 0; },
+    async addBonus(day, n) { const s = read(); s.bonus = s.bonus || {}; s.bonus[day] = (s.bonus[day] || 0) + n; write(s); },
     async addDrawing(d) {
       const s = read(); s.drawings = s.drawings || [];
       s.drawings.unshift({ id: String(Date.now()), ...d, createdAt: Date.now() });
@@ -47,7 +49,7 @@ function firebaseStore() {
   return {
     mode: 'firebase',
     async init() {
-      fb = await import('./firebase-bundle.js');
+      fb = await import('./firebase-bundle.js?v=20261115');
       const app = fb.initializeApp(firebaseConfig);
       auth = fb.getAuth(app);
       await fb.setPersistence(auth, fb.browserLocalPersistence);
@@ -81,6 +83,14 @@ function firebaseStore() {
     },
     async addSeconds(day, n) {
       await fb.setDoc(fb.doc(db, 'users', user.uid, 'days', day), { seconds: fb.increment(n) }, { merge: true });
+    },
+    // minuti extra concessi dal genitore per quel giorno (in secondi)
+    async getBonus(day) {
+      const snap = await fb.getDoc(fb.doc(db, 'users', user.uid, 'days', day));
+      return snap.exists() ? snap.data().bonus || 0 : 0;
+    },
+    async addBonus(day, n) {
+      await fb.setDoc(fb.doc(db, 'users', user.uid, 'days', day), { bonus: fb.increment(n) }, { merge: true });
     },
     async addDrawing(d) {
       await fb.addDoc(fb.collection(db, 'users', user.uid, 'drawings'), { ...d, createdAt: Date.now() });

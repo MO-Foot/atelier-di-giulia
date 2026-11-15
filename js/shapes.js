@@ -1,3 +1,6 @@
+import { libraryExercises, BASE_CATS } from './library.js?v=20261115';
+import { themeExercises } from './themes.js?v=20261115';
+
 // Sagome disegnate in un riquadro 100 x 100 (formato "path" SVG).
 // Ogni esercizio ha: id unico, nome, emoji, tipo ("trace" = ricalca, "color" = colora),
 // percorso, livello (1 facile → 3 difficile) e se fa parte della serie di Halloween.
@@ -83,5 +86,13 @@ export const EXERCISES = [
   { id: 'cn-regalo',   kind: 'color', name: 'Il regalo',     emoji: '🎁', path: P.regalo,     level: 2, suggest: '#e63946', season: 'natale' },
   { id: 'cn-calza',    kind: 'color', name: 'La calza',      emoji: '🧦', path: P.calza,      level: 2, suggest: '#e63946', season: 'natale' },
 ];
+
+// categoria dei disegni di base + disegni della libreria
+for (const e of EXERCISES) {
+  if (e.season) continue;
+  const key = Object.keys(P).find(k => P[k] === e.path);
+  e.cat = BASE_CATS[key] || 'forme';
+}
+EXERCISES.push(...libraryExercises(), ...themeExercises());
 
 export const SHAPE_PATHS = P;
