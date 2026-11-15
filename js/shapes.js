@@ -1,5 +1,5 @@
-import { libraryExercises, BASE_CATS } from './library.js?v=20261115';
-import { themeExercises } from './themes.js?v=20261115';
+import { libraryExercises, BASE_CATS } from './library.js?v=20261115b';
+import { themeExercises } from './themes.js?v=20261115b';
 
 // Sagome disegnate in un riquadro 100 x 100 (formato "path" SVG).
 // Ogni esercizio ha: id unico, nome, emoji, tipo ("trace" = ricalca, "color" = colora),

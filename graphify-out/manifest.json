@@ -6,9 +6,9 @@
     "semantic_hash": ""
   },
   "js/app.js": {
-    "mtime": 1794741614.1280382,
-    "seen": 1794741668.4967403,
-    "ast_hash": "bc6520ac2794e5c0ff69e168ae86a3dd",
+    "mtime": 1794742599.7471657,
+    "seen": 1794742847.0010855,
+    "ast_hash": "42042aea6b25eae5931b20afa954ea0b",
     "semantic_hash": ""
   },
   "js/config.js": {
@@ -24,15 +24,15 @@
     "semantic_hash": ""
   },
   "js/shapes.js": {
-    "mtime": 1794741614.1273417,
-    "seen": 1794741668.4967487,
-    "ast_hash": "4ffdf7f1abb3f50e6f667b8e52869382",
+    "mtime": 1794742599.747504,
+    "seen": 1794742847.001096,
+    "ast_hash": "9f62c1683798379d2e3eb938bd3d8d92",
     "semantic_hash": ""
   },
   "js/store.js": {
-    "mtime": 1794740552.991717,
-    "seen": 1794740622.5804155,
-    "ast_hash": "9bd8dd680a17e856051760b617e150ae",
+    "mtime": 1794742599.7469451,
+    "seen": 1794742847.0010974,
+    "ast_hash": "1331f03c580c92b08d3be812052029b3",
     "semantic_hash": ""
   },
   "manifest.json": {
@@ -48,15 +48,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1794740553.0040176,
-    "seen": 1794740622.5804195,
-    "ast_hash": "fef7bd262422d0cff8558c1e2e4b7de6",
+    "mtime": 1794742599.7465425,
+    "seen": 1794742847.0011067,
+    "ast_hash": "b806e877bed334fd9c16c338e508bfae",
     "semantic_hash": ""
   },
   "CONTESTO.md": {
-    "mtime": 1794740626.6869109,
-    "seen": 1794741668.496754,
-    "ast_hash": "63904a1d40bb2e679614dcc2673db983",
+    "mtime": 1794741825.700288,
+    "seen": 1794742847.001104,
+    "ast_hash": "f51b455d0087c7ab056eff27df965982",
     "semantic_hash": ""
   },
   "js/letters.js": {
@@ -75,6 +75,18 @@
     "mtime": 1794741579.8134608,
     "seen": 1794741668.4967513,
     "ast_hash": "80c18fd1827a78a0b55b672946995d6b",
+    "semantic_hash": ""
+  },
+  "js/teatro-copione.js": {
+    "mtime": 1794742206.4499214,
+    "seen": 1794742847.0010986,
+    "ast_hash": "29eef6be7d8b6fcdf7599d2ca0a8be50",
+    "semantic_hash": ""
+  },
+  "js/teatro.js": {
+    "mtime": 1794742599.7476456,
+    "seen": 1794742847.0011,
+    "ast_hash": "6b345ad2f728c2e4b6c2dbf1fe24859e",
     "semantic_hash": ""
   }
 }

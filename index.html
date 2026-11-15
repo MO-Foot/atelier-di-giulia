@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261115">
+  <link rel="stylesheet" href="style.css?v=20261115b">
 </head>
 <body>
   <!-- Accesso genitore -->
@@ -57,6 +57,7 @@
       <button class="tile tile-letters" data-go="letters"><span class="tile-emoji">🔤</span><span>Lettere</span></button>
       <button class="tile tile-coll" data-go="collection"><span class="tile-emoji">🐾</span><span>Animaletti</span></button>
       <button class="tile tile-gal" data-go="gallery"><span class="tile-emoji">🖼️</span><span>I miei disegni</span></button>
+      <button class="tile tile-theater" data-go="theater"><span class="tile-emoji">🎭</span><span>Teatro</span></button>
     </div>
   </section>
 
@@ -108,6 +109,45 @@
     </div>
     <p class="letters-hint">Tocca la lettera grande o quella piccola. Quando le fai bene tutte e due, la lettera entra nel tuo album! 📖</p>
     <div id="letters-grid" class="letters-grid"></div>
+  </section>
+
+  <!-- Teatro: prove della recita (Giulia = Ada) -->
+  <section id="screen-theater" class="screen hidden">
+    <div class="screen-head">
+      <button class="icon-btn back" id="th-back" aria-label="Indietro">⬅️</button>
+      <h2>🎭 Teatro <span id="th-count" class="pill"></span></h2>
+      <button class="icon-btn" id="th-slow" aria-label="Voci più lente">🐢</button>
+    </div>
+    <p class="th-sub"><b id="th-title"></b> · Giulia è <b>Ada</b> 👧</p>
+    <div id="th-list" class="th-list"></div>
+    <div id="th-moment" class="hidden">
+      <h3 id="th-mtitle" class="th-mtitle"></h3>
+      <div id="th-cast" class="th-cast"></div>
+      <div id="th-stage" class="th-stage">
+        <div id="th-face" class="th-face">🎭</div>
+        <div class="th-bubble-wrap"><div id="th-who" class="th-who"></div><div id="th-bubble" class="th-bubble"></div></div>
+      </div>
+      <div id="th-turn" class="th-turn hidden">
+        <div id="th-turn-label" class="th-turn-label">Tocca a te!</div>
+        <button id="th-mic" class="th-mic" aria-label="Parla">🎤</button>
+        <div id="th-heard" class="th-heard"></div>
+        <div id="th-result" class="th-result"></div>
+        <div id="th-hint" class="th-hint hidden"></div>
+        <div id="th-judge" class="th-judge hidden">
+          <button id="th-ok" class="btn">✅ Giusta</button>
+          <button id="th-again" class="btn">🔁 Ancora</button>
+          <button id="th-next" class="btn btn-ghost">⏭️ Avanti</button>
+        </div>
+        <button id="th-skipmic" class="th-skipmic">senza microfono</button>
+      </div>
+      <div id="th-controls" class="th-controls">
+        <button id="th-listen" class="th-btn th-b1"><span>👂</span>Ascolta</button>
+        <button id="th-pieces" class="th-btn th-b2"><span>🧩</span>A pezzi</button>
+        <button id="th-recite" class="th-btn th-b3"><span>🎤</span>Recita</button>
+        <button id="th-stop" class="th-btn th-b4"><span>⏹️</span>Stop</button>
+      </div>
+      <div id="th-tickets" class="th-tickets"></div>
+    </div>
   </section>
 
   <section id="screen-collection" class="screen hidden">
@@ -183,6 +223,7 @@
       <div class="moon">🌙</div>
       <h2>Per oggi basta disegnare!</h2>
       <p>Hai lavorato benissimo. Torna domani! 💤</p>
+      <button id="timeup-theater" class="btn btn-primary">🎭 Prova il teatro</button>
       <button id="timeup-parent" class="icon-btn" aria-label="Area genitori">⚙️</button>
     </div>
   </div>
@@ -213,6 +254,6 @@
       setTimeout(function () { if (!window.__dgReady) fail('timeout'); }, 12000);
     })();
   </script>
-  <script type="module" src="js/app.js?v=20261115"></script>
+  <script type="module" src="js/app.js?v=20261115b"></script>
 </body>
 </html>

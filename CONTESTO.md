@@ -30,6 +30,13 @@ Leggere questo file e `graphify-out/GRAPH_REPORT.md` all'inizio di ogni sessione
 - Cache: tutti i file JS/CSS sono richiamati con `?v=AAAAMMGG` (index.html, import in app.js e store.js). **A ogni modifica cambiare il numero di versione ovunque**, altrimenti il tablet può mescolare file vecchi e nuovi.
 - `$()` in app.js non restituisce mai null (elemento finto + avviso in console). Se l'app non parte entro 12 s o va in errore all'avvio, index.html mostra la schermata "L'app si sta aggiornando" con pulsante Ricarica.
 
+## Teatro (recita di Giulia)
+- Recita scolastica "Sotto l'albero c'è posto per due"; Giulia è **Ada** e dice tutte le battute evidenziate (12, pagine 6, 10, 13, 14, 15: Mo conferma che non ce ne sono altre). Testo trascritto dalle foto in `js/teatro-copione.js` (con le battute degli altri che fanno da attacco e le indicazioni di scena lette dal narratore).
+- `js/teatro.js`: modalità **Ascolta** (tutta la scena con voci diverse), **A pezzi** (Ada dice un pezzo, Giulia ripete, poi tutta), **Recita** (attacco degli altri → "Tocca a te!" → microfono → valutazione). Riconoscimento: `webkitSpeechRecognition` di Safari (serve Siri attivo), avviato dentro il tocco sul 🎤; giusta se ≥70% delle parole in ordine; il genitore può sempre premere ✅/🔁/⏭️; "senza microfono" per saltare il riconoscimento.
+- Voci: quelle italiane del tablet (sull'iPad di solito più di una) + tono/velocità diversi per personaggio; pulsante 🐢 per voci più lente. Opzione futura: voci registrate dalla famiglia.
+- 3 prove riuscite = battuta imparata = biglietto 🎟️ (`profile.theater`). Il teatro NON consuma i 15 minuti ed è raggiungibile anche dalla schermata "tempo finito".
+- Personaggi mostrati con emoji (nessuna immagine di Toy Story).
+
 ## Storico
 - 2026-10-29: prima versione online.
 - 2026-11-02: Giulia ha completato i 24 animaletti → aggiunti 4 album, serie di Natale, uovo a 8 stelle, penalità scarabocchi.
@@ -38,3 +45,4 @@ Leggere questo file e `graphify-out/GRAPH_REPORT.md` all'inizio di ogni sessione
 - 2026-11-05: lettere dell'alfabeto + album dell'alfabeto, pulsante +5 minuti, corretta finestra genitori nascosta sotto "tempo finito". Versione `?v=20261105`.
 - 2026-11-15: libreria di 33 nuovi disegni con categorie (fuori stagione: ricalca da 13 a 46, colora da 8 a 37). Versione `?v=20261115`.
 - 2026-11-15: Spiritelli e Fatine (serie originali con album) + prima pubblicazione automatica su GitHub.
+- 2026-11-15: Teatro per le prove di Ada. Versione `?v=20261115b`.

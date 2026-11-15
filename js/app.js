@@ -1,11 +1,12 @@
-import { store, isDemo } from './store.js?v=20261115';
-import { SETTINGS } from './config.js?v=20261115';
-import { EXERCISES } from './shapes.js?v=20261115';
-import { ALBUMS, SEASONS, ALBUM_ITEMS, ALL_ITEMS, currentAlbum, owned } from './animals.js?v=20261115';
-import { samplePath, scoreTrace, scoreColor } from './scoring.js?v=20261115';
-import { ALPHABET, LETTER_EXERCISES, letterInfo, LETTER_MIN_STARS } from './letters.js?v=20261115';
-import { CATEGORIES } from './library.js?v=20261115';
-import { THEMES, THEME_ITEMS, THEME_MIN_STARS, itemSvg } from './themes.js?v=20261115';
+import { store, isDemo } from './store.js?v=20261115b';
+import { SETTINGS } from './config.js?v=20261115b';
+import { EXERCISES } from './shapes.js?v=20261115b';
+import { ALBUMS, SEASONS, ALBUM_ITEMS, ALL_ITEMS, currentAlbum, owned } from './animals.js?v=20261115b';
+import { samplePath, scoreTrace, scoreColor } from './scoring.js?v=20261115b';
+import { ALPHABET, LETTER_EXERCISES, letterInfo, LETTER_MIN_STARS } from './letters.js?v=20261115b';
+import { CATEGORIES } from './library.js?v=20261115b';
+import { THEMES, THEME_ITEMS, THEME_MIN_STARS, itemSvg } from './themes.js?v=20261115b';
+import { initTheater, openTheater } from './teatro.js?v=20261115b';
 
 // Se un elemento manca (es. file vecchi rimasti in cache) l'app non deve bloccarsi:
 // $() restituisce un elemento finto invece di null.
@@ -43,7 +44,7 @@ export function activeSeason(d = seasonDate()) {
   return null;
 }
 
-const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null, letters: {} });
+const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null, letters: {}, theater: {} });
 const findEx = id => EXERCISES.find(e => e.id === id) || LETTER_EXERCISES.find(e => e.id === id);
 const traceLike = ex => ex.kind !== 'color';   // ricalco e lettere si valutano allo stesso modo
 
@@ -56,6 +57,7 @@ function normalizeProfile(p) {
   delete out.pumpkinStars;
   out.best = out.best || {};
   out.letters = out.letters || {};
+  out.theater = out.theater || {};
   return out;
 }
 
@@ -116,7 +118,12 @@ function show(name) {
 }
 
 function go(where) {
-  if (where === 'home') { renderHome(); show('home'); }
+  if (where === 'home') {
+    renderHome(); show('home');
+    // il teatro non consuma tempo; tornando a casa, se il tempo era finito, si rivede la schermata della nanna
+    if (state.timeUp) $('#overlay-timeup').classList.remove('hidden');
+  }
+  else if (where === 'theater') { $('#overlay-timeup').classList.add('hidden'); openTheater(); }
   else if (where === 'trace' || where === 'color') { if (state.kind !== where) state.cat = 'tutti'; state.kind = where; renderPick(); show('pick'); }
   else if (where === 'collection') { renderCollection(); show('collection'); }
   else if (where === 'letters') { renderLetters(); show('letters'); }
@@ -871,6 +878,12 @@ async function boot() {
     go('home');
   });
 }
+initTheater({
+  $, show, go, toast, confetti, chime,
+  getProfile: () => state.profile,
+  saveProfile: () => store.saveProfile(state.profile).catch(err => console.warn('profilo', err)),
+});
+$('#timeup-theater').onclick = () => go('theater');
 boot();
 
 // per i test automatici
