@@ -46,3 +46,4 @@ Leggere questo file e `graphify-out/GRAPH_REPORT.md` all'inizio di ogni sessione
 - 2026-11-15: libreria di 33 nuovi disegni con categorie (fuori stagione: ricalca da 13 a 46, colora da 8 a 37). Versione `?v=20261115`.
 - 2026-11-15: Spiritelli e Fatine (serie originali con album) + prima pubblicazione automatica su GitHub.
 - 2026-11-15: Teatro per le prove di Ada. Versione `?v=20261115b`.
+- 2026-11-15 (pomeriggio): Mo segnala che il teatro si blocca dopo la prima battuta sull'iPad. Correzioni: frasi tenute in memoria (bug di Safari su "onend"), riavvio del motore voci se si incanta, microfono chiuso con `abort()` e pausa prima delle voci, la voce spiega di toccare il microfono, riga di stato con eventuali errori. Versione `?v=20261115c`. Causa non ancora confermata.

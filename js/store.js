@@ -6,7 +6,7 @@
 //   users/{uid}/days/{AAAA-MM-GG}  → { seconds, bonus }     (tempo usato quel giorno, secondi extra concessi)
 //   users/{uid}/drawings/{id}      → { img, exerciseId, kind, stars, createdAt }   (galleria)
 
-import { firebaseConfig } from './config.js?v=20261115b';
+import { firebaseConfig } from './config.js?v=20261115c';
 
 const EMPTY_PROFILE = () => ({ collection: {}, eggStars: 0, seasonStars: {}, best: {}, seenAlbum: null, letters: {}, theater: {} });
 
@@ -49,7 +49,7 @@ function firebaseStore() {
   return {
     mode: 'firebase',
     async init() {
-      fb = await import('./firebase-bundle.js?v=20261115b');
+      fb = await import('./firebase-bundle.js?v=20261115c');
       const app = fb.initializeApp(firebaseConfig);
       auth = fb.getAuth(app);
       await fb.setPersistence(auth, fb.browserLocalPersistence);

@@ -1,6 +1,6 @@
 // Teatro: Giulia (Ada) ascolta la scena, ripete le sue battute a pezzi e poi le recita.
 // Le voci sono quelle sintetiche del tablet; il riconoscimento vocale usa quello di Safari (Siri).
-import { TITLE, CAST, MOMENTS, ADA_LINES, ROLE } from './teatro-copione.js?v=20261115b';
+import { TITLE, CAST, MOMENTS, ADA_LINES, ROLE } from './teatro-copione.js?v=20261115c';
 
 const LEARNED_AT = 3;     // una battuta è "imparata" (biglietto 🎟️) dopo 3 prove riuscite
 const OK_SCORE = 0.7;     // parole giuste (in ordine) per dire "giusta"
@@ -35,19 +35,34 @@ export function voicesInfo() {
   return itVoices.map(v => v.name);
 }
 
+// Safari su iPad: le frasi vanno tenute in memoria, altrimenti "onend" può non arrivare mai
+const alive = new Set();
+let missedEnds = 0;
+function status(msg) { const el = document.getElementById('th-status'); if (el) el.textContent = msg; }
+
 function say(who, text, myRun) {
   return new Promise(resolve => {
     if (myRun !== run || !('speechSynthesis' in window)) return resolve();
     const c = CAST[who];
+    status(`🔊 ${c.name} parla…`);
     const u = new SpeechSynthesisUtterance(text.replace(/[«»]/g, ''));
     u.lang = 'it-IT';
     const v = voiceFor(who); if (v) { try { u.voice = v; } catch { /* voce non valida: si usa quella predefinita */ } }
     u.pitch = c.pitch; u.rate = c.rate * (slow ? 0.8 : 1);
     let done = false;
-    const finish = () => { if (!done) { done = true; resolve(); } };
-    u.onend = finish; u.onerror = finish;
-    // su alcuni tablet "onend" non arriva: sicurezza in base alla lunghezza
-    setTimeout(finish, 1500 + text.length * (slow ? 110 : 85));
+    const finish = fromTimer => {
+      if (done) return; done = true; alive.delete(u);
+      if (fromTimer === true) {
+        // la voce si è "incantata": dopo due volte si riavvia il motore delle voci
+        if (++missedEnds >= 2) { try { speechSynthesis.cancel(); } catch { /* */ } missedEnds = 0; }
+      } else missedEnds = 0;
+      resolve();
+    };
+    u.onend = () => finish(false); u.onerror = () => finish(false);
+    alive.add(u);
+    // sicurezza: se "onend" non arriva si prosegue lo stesso
+    setTimeout(() => finish(true), 2500 + text.length * (slow ? 120 : 95));
+    try { if (speechSynthesis.paused) speechSynthesis.resume(); } catch { /* */ }
     speechSynthesis.speak(u);
   });
 }
@@ -77,15 +92,17 @@ export function similarity(expected, heard) {
 function listen(expected, myRun) {
   return new Promise(resolve => {
     if (!SR) return resolve({ text: '', score: null, error: 'non-supportato' });
-    try { speechSynthesis.cancel(); } catch { /* */ }
     const rec = new SR();
+    status('👂 Ti ascolto… parla adesso');
     rec.lang = 'it-IT'; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 3;
     let best = '', bestScore = 0, finished = false;
     const end = error => {
       if (finished) return; finished = true;
       clearTimeout(t);
-      try { rec.stop(); } catch { /* */ }
-      resolve({ text: best, score: best ? bestScore : 0, error });
+      try { rec.abort(); } catch { /* */ }
+      if (error && error !== 'no-speech' && error !== 'aborted') status(`⚠️ Microfono: ${error}`);
+      // su iPad il microfono deve "liberare" l'audio prima che le voci ripartano
+      setTimeout(() => resolve({ text: best, score: best ? bestScore : 0, error }), 450);
     };
     rec.onresult = e => {
       let joined = '';
@@ -120,6 +137,8 @@ function addSuccess(id) {
 /* ---------------- Interfaccia ---------------- */
 function stopAll() {
   run++;
+  status('');
+  pendingMic = null; pendingJudge = null;
   try { speechSynthesis.cancel(); } catch { /* */ }
   waiters.forEach(w => w(null)); waiters = [];
   ctx.$('#th-turn').classList.add('hidden');
@@ -210,6 +229,8 @@ async function myTurn(text, my, label = 'Tocca a te!') {
   ctx.$('#th-mic').classList.add('pulse');
   ctx.$('#th-hint').classList.add('hidden');
   ctx.$('#th-skipmic').classList.toggle('hidden', !canListen);
+  status('🎤 Tocca il microfono e parla!');
+  if (!micExplained) { micExplained = true; await say('N', "Tocca il microfono e di' la tua battuta!", my); }
 
   // aspetta il tocco sul microfono (o "salta microfono")
   const tap = await new Promise(resolve => { pendingMic = { resolve, text, my }; waiters.push(() => resolve(null)); });
@@ -246,7 +267,7 @@ async function myTurn(text, my, label = 'Tocca a te!') {
   lastJudge = j;
   return j === 'ok';
 }
-let pendingMic = null, pendingJudge = null;
+let pendingMic = null, pendingJudge = null, micExplained = false;
 
 async function cueBefore(lines, idx, my, howMany = 2) {
   const cue = [];
@@ -345,7 +366,10 @@ export function initTheater(c) {
   $('#th-listen').onclick = playListen;
   $('#th-recite').onclick = playRecite;
   $('#th-pieces').onclick = playPieces;
-  $('#th-stop').onclick = stopAll;
+  $('#th-stop').onclick = () => { stopAll(); try { speechSynthesis.cancel(); } catch { /* */ } };
+  // qualsiasi errore nel teatro si vede sullo schermo (utile per capire cosa succede sul tablet)
+  window.addEventListener('error', e => { if (!$('#screen-theater').classList.contains('hidden')) status('⚠️ ' + e.message); });
+  window.addEventListener('unhandledrejection', e => { if (!$('#screen-theater').classList.contains('hidden')) status('⚠️ ' + (e.reason?.message || e.reason)); });
   $('#th-slow').onclick = () => { slow = !slow; $('#th-slow').classList.toggle('on', slow); ctx.toast(slow ? '🐢 Voci più lente' : '🐇 Voci normali'); };
   // microfono: il riconoscimento DEVE partire dentro il tocco
   $('#th-mic').onclick = async () => {

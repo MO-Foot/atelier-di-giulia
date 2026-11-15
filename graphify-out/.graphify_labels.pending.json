@@ -1,17 +1,10 @@
 {
   "0": "app.js",
-  "1": "letters.js",
   "2": "go",
   "3": "manifest.json",
-  "4": "activeSeason",
-  "5": "finishDrawing",
+  "4": "finishDrawing",
   "6": "store.js",
   "7": "L'atelier di Giulia",
   "8": "teatro.js",
-  "9": "checkLimit",
-  "10": "openExercise",
-  "11": "themes.js",
-  "12": "animals.js",
-  "13": "startDay",
-  "14": "activeSeason"
+  "11": "themes.js"
 }
